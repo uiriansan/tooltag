@@ -22,7 +22,9 @@
         "@sveltejs/kit": "^2.63.0",
         "@sveltejs/vite-plugin-svelte": "^7.1.2",
         "@tailwindcss/vite": "^4.3.0",
+        "@types/bcrypt": "^6.0.0",
         "@types/better-sqlite3": "^7.6.13",
+        "@types/jsonwebtoken": "^9.0.10",
         "drizzle-kit": "^0.31.10",
         "svelte": "^5.56.1",
         "svelte-check": "^4.6.0",
@@ -32,8 +34,11 @@
         "vite": "^8.0.16"
     },
     "dependencies": {
+        "bcrypt": "^6.0.0",
         "better-sqlite3": "^12.11.1",
-        "drizzle-orm": "^0.45.2"
+        "drizzle-orm": "^0.45.2",
+        "jsonwebtoken": "^9.0.3",
+        "qr-scanner": "^1.4.2"
     },
     "allowScripts": {
         "esbuild@0.18.20": true,
@@ -41,6 +46,7 @@
         "esbuild@0.28.1": true,
         "better-sqlite3@12.11.1": true,
         "sharp@0.34.5": true,
-        "workerd@1.20260708.1": true
+        "workerd@1.20260708.1": true,
+        "bcrypt@6.0.0": true
     }
 }

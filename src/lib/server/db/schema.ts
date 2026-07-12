@@ -1,4 +1,4 @@
-import {  sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { sqliteTable, primaryKey, check, integer, text, real } from "drizzle-orm/sqlite-core";
 
 // CREATE TABLE IF NOT EXISTS Usuarios (
@@ -76,7 +76,7 @@ export const ocorrencias = sqliteTable("Ocorrencias", {
     data: integer("data", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
     solicitante: text("solicitante").notNull(),
     justificativa: text("justificativa").notNull(),
-    aprovado_por: integer("aprovador_por").references(() => usuarios.id),
+    aprovado_por: integer("aprovado_por").references(() => usuarios.id),
     data_aprovacao: integer("data_aprovacao", { mode: "timestamp" }),
     observacao: text("observacao"),
     maquina: integer("maquina").notNull().references(() => maquinas.id)

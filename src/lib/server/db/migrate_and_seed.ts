@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { usuarios } from "./schema.ts";
+import bcrypt from "bcrypt";
 
 const database = new Database(process.env.DB_PATH);
 const db = drizzle(database);
@@ -12,17 +13,19 @@ async function main() {
 
     const users = await db.select().from(usuarios).limit(1);
 
+    const salt_rounds = 12;
+    const hashed_passwd = await bcrypt.hash(process.env.ADM_SENHA!, salt_rounds);
+
     if (users.length === 0) {
         console.log("Populando DB...");
         const adm = {
-            nome: process.env.ADM_USERNAME,
+            nome: process.env.ADM_USERNAME!,
             admin: true,
             gestor: true,
-            senha: process.env.ADM_SENHA, // TODO: Hash!
+            senha: hashed_passwd,
             criado_em: new Date(),
             atualizado_em: new Date(),
         }
-
         await db.insert(usuarios).values(adm);
     } else {
         console.log("Banco de dados já foi populado. Ignorando seed...");
