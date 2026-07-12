@@ -1,0 +1,675 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "f7d9aa2f-0fa5-405f-85e3-8dac85771072",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "Categorias": {
+      "name": "Categorias",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "Categorias_nome_unique": {
+          "name": "Categorias_nome_unique",
+          "columns": [
+            "nome"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "Insumos": {
+      "name": "Insumos",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "cod_fabricacao": {
+          "name": "cod_fabricacao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cod_interno": {
+          "name": "cod_interno",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "observacoes": {
+          "name": "observacoes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "foto_path": {
+          "name": "foto_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "material": {
+          "name": "material",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ferramenta": {
+          "name": "ferramenta",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "altura_min": {
+          "name": "altura_min",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "altura_max": {
+          "name": "altura_max",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rpm": {
+          "name": "rpm",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "avanco_min": {
+          "name": "avanco_min",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "categoria": {
+          "name": "categoria",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "adicionado_por": {
+          "name": "adicionado_por",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "Insumos_cod_fabricacao_unique": {
+          "name": "Insumos_cod_fabricacao_unique",
+          "columns": [
+            "cod_fabricacao"
+          ],
+          "isUnique": true
+        },
+        "Insumos_cod_interno_unique": {
+          "name": "Insumos_cod_interno_unique",
+          "columns": [
+            "cod_interno"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "Insumos_tipo_TiposFerramentas_id_fk": {
+          "name": "Insumos_tipo_TiposFerramentas_id_fk",
+          "tableFrom": "Insumos",
+          "tableTo": "TiposFerramentas",
+          "columnsFrom": [
+            "tipo"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Insumos_categoria_Categorias_id_fk": {
+          "name": "Insumos_categoria_Categorias_id_fk",
+          "tableFrom": "Insumos",
+          "tableTo": "Categorias",
+          "columnsFrom": [
+            "categoria"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Insumos_adicionado_por_Usuarios_id_fk": {
+          "name": "Insumos_adicionado_por_Usuarios_id_fk",
+          "tableFrom": "Insumos",
+          "tableTo": "Usuarios",
+          "columnsFrom": [
+            "adicionado_por"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "InsumosFerramentas": {
+      "name": "InsumosFerramentas",
+      "columns": {
+        "insumo_id": {
+          "name": "insumo_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ferramenta_id": {
+          "name": "ferramenta_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "quantidade": {
+          "name": "quantidade",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "InsumosFerramentas_insumo_id_Insumos_id_fk": {
+          "name": "InsumosFerramentas_insumo_id_Insumos_id_fk",
+          "tableFrom": "InsumosFerramentas",
+          "tableTo": "Insumos",
+          "columnsFrom": [
+            "insumo_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "InsumosFerramentas_ferramenta_id_Insumos_id_fk": {
+          "name": "InsumosFerramentas_ferramenta_id_Insumos_id_fk",
+          "tableFrom": "InsumosFerramentas",
+          "tableTo": "Insumos",
+          "columnsFrom": [
+            "ferramenta_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "InsumosFerramentas_insumo_id_ferramenta_id_pk": {
+          "columns": [
+            "insumo_id",
+            "ferramenta_id"
+          ],
+          "name": "InsumosFerramentas_insumo_id_ferramenta_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "InsumosMaquinas": {
+      "name": "InsumosMaquinas",
+      "columns": {
+        "insumo_id": {
+          "name": "insumo_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "maquina_id": {
+          "name": "maquina_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "InsumosMaquinas_insumo_id_Insumos_id_fk": {
+          "name": "InsumosMaquinas_insumo_id_Insumos_id_fk",
+          "tableFrom": "InsumosMaquinas",
+          "tableTo": "Insumos",
+          "columnsFrom": [
+            "insumo_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "InsumosMaquinas_maquina_id_Maquinas_id_fk": {
+          "name": "InsumosMaquinas_maquina_id_Maquinas_id_fk",
+          "tableFrom": "InsumosMaquinas",
+          "tableTo": "Maquinas",
+          "columnsFrom": [
+            "maquina_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "InsumosMaquinas_insumo_id_maquina_id_pk": {
+          "columns": [
+            "insumo_id",
+            "maquina_id"
+          ],
+          "name": "InsumosMaquinas_insumo_id_maquina_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "InsumosOcorrencias": {
+      "name": "InsumosOcorrencias",
+      "columns": {
+        "insumo_id": {
+          "name": "insumo_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ocorrencia_id": {
+          "name": "ocorrencia_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "quantidade": {
+          "name": "quantidade",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "InsumosOcorrencias_insumo_id_Insumos_id_fk": {
+          "name": "InsumosOcorrencias_insumo_id_Insumos_id_fk",
+          "tableFrom": "InsumosOcorrencias",
+          "tableTo": "Insumos",
+          "columnsFrom": [
+            "insumo_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "InsumosOcorrencias_ocorrencia_id_Ocorrencias_id_fk": {
+          "name": "InsumosOcorrencias_ocorrencia_id_Ocorrencias_id_fk",
+          "tableFrom": "InsumosOcorrencias",
+          "tableTo": "Ocorrencias",
+          "columnsFrom": [
+            "ocorrencia_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "InsumosOcorrencias_insumo_id_ocorrencia_id_pk": {
+          "columns": [
+            "insumo_id",
+            "ocorrencia_id"
+          ],
+          "name": "InsumosOcorrencias_insumo_id_ocorrencia_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "Maquinas": {
+      "name": "Maquinas",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "Maquinas_nome_unique": {
+          "name": "Maquinas_nome_unique",
+          "columns": [
+            "nome"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "Ocorrencias": {
+      "name": "Ocorrencias",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "status": {
+          "name": "status",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "prioridade": {
+          "name": "prioridade",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "data": {
+          "name": "data",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "solicitante": {
+          "name": "solicitante",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "justificativa": {
+          "name": "justificativa",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "aprovador_por": {
+          "name": "aprovador_por",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "data_aprovacao": {
+          "name": "data_aprovacao",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "observacao": {
+          "name": "observacao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "maquina": {
+          "name": "maquina",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Ocorrencias_aprovador_por_Usuarios_id_fk": {
+          "name": "Ocorrencias_aprovador_por_Usuarios_id_fk",
+          "tableFrom": "Ocorrencias",
+          "tableTo": "Usuarios",
+          "columnsFrom": [
+            "aprovador_por"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Ocorrencias_maquina_Maquinas_id_fk": {
+          "name": "Ocorrencias_maquina_Maquinas_id_fk",
+          "tableFrom": "Ocorrencias",
+          "tableTo": "Maquinas",
+          "columnsFrom": [
+            "maquina"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "status_check": {
+          "name": "status_check",
+          "value": "\"Ocorrencias\".\"status\" in (0, 1)"
+        },
+        "prioridade_check": {
+          "name": "prioridade_check",
+          "value": "\"Ocorrencias\".\"prioridade\" in (0, 1, 2, 3)"
+        }
+      }
+    },
+    "TiposFerramentas": {
+      "name": "TiposFerramentas",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "TiposFerramentas_nome_unique": {
+          "name": "TiposFerramentas_nome_unique",
+          "columns": [
+            "nome"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "Usuarios": {
+      "name": "Usuarios",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "admin": {
+          "name": "admin",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "gestor": {
+          "name": "gestor",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "senha": {
+          "name": "senha",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "Usuarios_nome_unique": {
+          "name": "Usuarios_nome_unique",
+          "columns": [
+            "nome"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
