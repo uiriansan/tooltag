@@ -1,15 +1,20 @@
 @import 'tailwindcss';
 
+/* Flowbite setup: */
+@import "flowbite/src/themes/default";
+@plugin "flowbite/plugin";
+@source "../../node_modules/flowbite/";
+
 /* Variáveis CSS */
 :root {
     --primary-color: hsla(204, 70%, 38%, 1.0);
     --accent-color: hsla(204, 64%, 35%, 1.0);
 }
 
-html,
-body {
-    background-image: linear-gradient(135deg, #242426 0%, #1c1c1d 100%);
-    background-size: auto;
-    background-clip: border-box;
-    color: white;
-}
+/* html, */
+/* body { */
+/*     background-image: linear-gradient(135deg, #242426 0%, #1c1c1d 100%); */
+/*     background-size: auto; */
+/*     background-clip: border-box; */
+/*     color: white; */
+/* } */
