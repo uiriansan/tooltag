@@ -9,8 +9,4 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<div class="container mx-auto px-50">
-    <Navbar />
-</div>
-
 {@render children()}

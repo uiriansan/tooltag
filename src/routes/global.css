@@ -4,11 +4,23 @@
 @import "flowbite/src/themes/default";
 @plugin "flowbite/plugin";
 @source "../../node_modules/flowbite/";
+@source "../../node_modules/flowbite-svelte-icons/dist";
 
 /* Variáveis CSS */
 :root {
     --primary-color: hsla(204, 70%, 38%, 1.0);
     --accent-color: hsla(204, 64%, 35%, 1.0);
+}
+
+@layer base {
+    body {
+        @apply bg-neutral-primary text-heading;
+    }
+
+    button {
+        cursor: pointer;
+        transition: background-color .5s;
+    }
 }
 
 /* html, */

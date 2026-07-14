@@ -2,6 +2,7 @@
     "name": "tooltag",
     "private": true,
     "version": "0.0.1",
+    "author": "Willian Santos <github.com/uiriansan>",
     "type": "module",
     "scripts": {
         "dev": "vite dev",
@@ -18,7 +19,6 @@
     },
     "devDependencies": {
         "@sveltejs/adapter-auto": "^7.0.1",
-        "@sveltejs/adapter-cloudflare": "^7.2.9",
         "@sveltejs/adapter-node": "^5.5.7",
         "@sveltejs/kit": "^2.63.0",
         "@sveltejs/vite-plugin-svelte": "^7.1.2",
@@ -27,6 +27,7 @@
         "@types/better-sqlite3": "^7.6.13",
         "@types/jsonwebtoken": "^9.0.10",
         "drizzle-kit": "^0.31.10",
+        "flowbite-svelte-icons": "^3.1.0",
         "svelte": "^5.56.1",
         "svelte-check": "^4.6.0",
         "tailwindcss": "^4.3.0",
@@ -41,7 +42,6 @@
         "drizzle-orm": "^0.45.2",
         "drizzle-seed": "^0.3.1",
         "flowbite": "^4.0.2",
-        "flowbite-svelte": "^1.33.1",
         "jsonwebtoken": "^9.0.3",
         "qr-scanner": "^1.4.2",
         "tailwind-merge": "^3.6.0"
