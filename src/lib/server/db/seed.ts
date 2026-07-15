@@ -73,11 +73,11 @@ async function main() {
           ]),
           tipo: funcs.int({
             minValue: 1,
-            maxValue: 6,
+            maxValue: 5,
           }),
           categoria: funcs.int({
             minValue: 1,
-            maxValue: 7,
+            maxValue: 6,
           }),
           altura_min: funcs.number({
             minValue: 1,
@@ -117,7 +117,7 @@ async function main() {
           justificativa: funcs.loremIpsum(),
           maquina: funcs.int({
             minValue: 1,
-            maxValue: 6,
+            maxValue: 5,
           }),
         },
       },
