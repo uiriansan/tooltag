@@ -36,6 +36,7 @@
         "vite": "^8.0.16"
     },
     "dependencies": {
+        "@humanspeak/svelte-virtual-list": "^0.5.11",
         "@popperjs/core": "^2.11.8",
         "bcrypt": "^6.0.0",
         "better-sqlite3": "^12.11.1",

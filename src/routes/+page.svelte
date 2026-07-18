@@ -5,6 +5,7 @@
     import QrCodeIcon from "$lib/assets/icons/qr_code.svelte";
     import MagnifyingGlassIcon from "$lib/assets/icons/magnifying_glass.svelte";
     import InvoiceIcon from "$lib/assets/icons/invoice.svelte";
+    import { goto } from "$app/navigation";
 </script>
 
 <main class="h-screen flex flex-col">
@@ -16,7 +17,9 @@
     <div
         class="home-buttons flex flex-1 flex-col gap-5 items-center justify-center"
     >
-        <button><MagnifyingGlassIcon /> Buscar</button>
+        <button type="button" onclick={() => goto("/insumos")}
+            ><MagnifyingGlassIcon /> Buscar</button
+        >
         <button><InvoiceIcon /> Solicitar insumo</button>
         <button><QrCodeIcon /> Ler QrCode </button>
     </div>
