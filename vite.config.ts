@@ -2,6 +2,7 @@ import tailwindcss from "@tailwindcss/vite";
 import adapter from "@sveltejs/adapter-node";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig, loadEnv } from "vite";
+import mkcert from "vite-plugin-mkcert";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -10,11 +11,13 @@ export default defineConfig(({ mode }) => {
     server: {
       port: parseInt(env.PORT) || 8080,
       strictPort: true,
+      https: true,
     },
     preview: {
       port: parseInt(env.PORT) || 8080,
     },
     plugins: [
+      mkcert(), // Permitir https em LAN (necessário para acessar câmera)
       tailwindcss(),
       sveltekit({
         compilerOptions: {
