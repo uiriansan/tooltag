@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { boolean } from "drizzle-orm/gel-core";
 import {
   sqliteTable,
   primaryKey,
@@ -9,41 +10,46 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 // CREATE TABLE IF NOT EXISTS Usuarios (
-export const usuarios = sqliteTable("Usuarios", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  nome: text("nome").unique().notNull(),
-  admin: integer("admin", { mode: "boolean" }).notNull().default(false),
-  gestor: integer("gestor", { mode: "boolean" }).notNull().default(false),
-  senha: text("senha").notNull(),
-  criado_em: integer("criado_em", { mode: "timestamp" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  atualizado_em: integer("atualizado_em", { mode: "timestamp" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-});
+export const usuarios = sqliteTable(
+  "Usuarios",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    nome: text("nome").notNull().unique(),
+    cargo: integer("cargo").notNull().default(0),
+    senha: text("senha").notNull(),
+    criado_em: integer("criado_em", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    atualizado_em: integer("atualizado_em", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (usuarios) => [
+    check("cargo", sql`${usuarios.cargo} in (0, 1)`), // `0` gestor, `1` admin
+  ],
+);
 
 // CREATE TABLE IF NOT EXISTS Categorias (
 export const categorias = sqliteTable("Categorias", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  nome: text("nome").unique().notNull(),
+  nome: text("nome").notNull().unique(),
 });
 
 // CREATE TABLE IF NOT EXISTS TiposFerramentas (
 export const tipos_ferramentas = sqliteTable("TiposFerramentas", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  nome: text("nome").unique().notNull(),
+  nome: text("nome").notNull().unique(),
 });
 
 // CREATE TABLE IF NOT EXISTS Insumos (
 export const insumos = sqliteTable("Insumos", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  cod_fabricacao: text("cod_fabricacao").unique().notNull(),
-  cod_interno: text("cod_interno").unique().notNull(),
+  cod_fabricacao: text("cod_fabricacao").notNull().unique(),
+  cod_interno: text("cod_interno").notNull().unique(),
   nome: text("nome").notNull(),
   observacoes: text("observacoes"),
-  foto_path: text("foto_path"),
-  material: text("material"),
+  foto: text("foto"),
+  material: text("material"), // material do insumo, ou material para o qual a ferramenta é destinada.
   ferramenta: integer("ferramenta", { mode: "boolean" })
     .notNull()
     .default(false),
@@ -62,6 +68,7 @@ export const insumos = sqliteTable("Insumos", {
   adicionado_por: integer("adicionado_por")
     .notNull()
     .references(() => usuarios.id),
+  completo: integer("completo", { mode: "boolean" }).notNull().default(false), // Se o cadastro do insumo foi ou não finalizado.
 });
 
 // CREATE TABLE IF NOT EXISTS InsumosFerramentas (
@@ -89,7 +96,7 @@ export const insumos_ferramentas = sqliteTable(
 // CREATE TABLE IF NOT EXISTS Maquinas (
 export const maquinas = sqliteTable("Maquinas", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  nome: text("nome").unique().notNull(),
+  nome: text("nome").notNull().unique(),
 });
 
 // CREATE TABLE IF NOT EXISTS InsumosMaquinas (
@@ -130,8 +137,8 @@ export const ocorrencias = sqliteTable(
       .references(() => maquinas.id),
   },
   (ocorrencias) => [
-    check("status_check", sql`${ocorrencias.status} in (0, 1)`),
-    check("prioridade_check", sql`${ocorrencias.prioridade} in (0, 1, 2, 3)`),
+    check("status_check", sql`${ocorrencias.status} in (0, 1)`), // `0` pendente, `1` atendida.
+    check("prioridade_check", sql`${ocorrencias.prioridade} in (0, 1, 2, 3)`), // `0` baixa, `1` média, `2` alta, `3` crítica.
   ],
 );
 
@@ -146,8 +153,11 @@ export const insumos_ocorrencias = sqliteTable(
       .notNull()
       .references(() => ocorrencias.id),
     quantidade: integer("quantidade").notNull(),
+    ferramenta_ref: integer("ferramenta_ref") // Caso este insumo tenha sido solicitado como parte de uma ferramenta.
+      .references(() => insumos.id),
   },
   (insumos_ocorrencias) => [
+    // Caso este insumo tenha sido adicionado como parte de uma ferramenta.
     primaryKey({
       columns: [
         insumos_ocorrencias.insumo_id,

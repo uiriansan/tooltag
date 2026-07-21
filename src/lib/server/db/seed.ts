@@ -99,6 +99,9 @@ async function main() {
             { weight: 0.2, value: funcs.boolean() },
             { weight: 0.8, value: funcs.boolean() },
           ]),
+          foto: funcs.valuesFromArray({
+            values: [undefined, undefined, undefined, undefined, "teste.png"],
+          }),
           tipo: funcs.int({
             minValue: 1,
             maxValue: 5,
@@ -128,6 +131,10 @@ async function main() {
           adicionado_por: funcs.default({
             defaultValue: 1,
           }),
+          completo: funcs.weightedRandom([
+            { weight: 0.3, value: funcs.boolean() },
+            { weight: 0.7, value: funcs.boolean() },
+          ]),
         },
       },
       ocorrencias: {
@@ -187,6 +194,10 @@ async function main() {
         ocorrencia_id: ocorrencia.id,
         insumo_id: materiais[ocorrencia.id % materiais.length].id,
         quantidade: (ocorrencia.id % 4) + 1,
+        ferramenta_ref:
+          Math.random() < 0.3
+            ? ferramentas[Math.floor(Math.random() * ferramentas.length)].id
+            : null,
       });
     }
 

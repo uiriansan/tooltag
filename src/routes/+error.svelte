@@ -8,10 +8,10 @@
 >
     <h1 class="font-extrabold text-6xl">{page.status}</h1>
     <p class="mt-2">{page.error?.message}</p>
-    <Button
-        text="Voltar"
-        icon="arrow-left"
-        class="mt-5 w-30"
-        on_click={() => history.back()}
-    />
+    <!-- <Button -->
+    <!--     text="Voltar" -->
+    <!--     icon="arrow-left" -->
+    <!--     class="mt-5 w-30" -->
+    <!--     on_click={() => history.back()} -->
+    <!-- /> -->
 </div>

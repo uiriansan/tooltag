@@ -3,6 +3,7 @@ import adapter from "@sveltejs/adapter-node";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig, loadEnv } from "vite";
 import mkcert from "vite-plugin-mkcert";
+import Icons from "unplugin-icons/vite";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -12,12 +13,18 @@ export default defineConfig(({ mode }) => {
       port: parseInt(env.PORT) || 8080,
       strictPort: true,
       https: true,
+      fs: {
+        allow: ["data/uploads"],
+      },
     },
     preview: {
       port: parseInt(env.PORT) || 8080,
     },
     plugins: [
       mkcert(), // Permitir https em LAN (necessário para acessar câmera)
+      Icons({
+        compiler: "svelte",
+      }),
       tailwindcss(),
       sveltekit({
         compilerOptions: {

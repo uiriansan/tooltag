@@ -11,13 +11,14 @@
         "prepare": "svelte-kit sync || echo ''",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+        "dev:db:seed_dummy_data": "tsx --env-file=.env src/lib/server/db/seed.ts",
         "db:generate": "drizzle-kit generate --config=src/lib/server/db/drizzle.config.ts",
         "db:migrate": "tsx --env-file=.env src/lib/server/db/migrate.ts",
         "db:push": "drizzle-kit push --config=src/lib/server/db/drizzle.config.ts",
-        "db:studio": "drizzle-kit studio --config=src/lib/server/db/drizzle.config.ts",
-        "db:dev:seed_dummy_data": "tsx --env-file=.env src/lib/server/db/seed.ts"
+        "db:studio": "drizzle-kit studio --config=src/lib/server/db/drizzle.config.ts"
     },
     "devDependencies": {
+        "@iconify-json/fluent": "^1.2.53",
         "@sveltejs/adapter-auto": "^7.0.1",
         "@sveltejs/adapter-node": "^5.5.7",
         "@sveltejs/kit": "^2.63.0",
@@ -27,12 +28,12 @@
         "@types/better-sqlite3": "^7.6.13",
         "@types/jsonwebtoken": "^9.0.10",
         "drizzle-kit": "^0.31.10",
-        "flowbite-svelte-icons": "^3.1.0",
         "svelte": "^5.56.1",
         "svelte-check": "^4.6.0",
         "tailwindcss": "^4.3.0",
         "tsx": "^4.23.0",
         "typescript": "^6.0.3",
+        "unplugin-icons": "^23.0.1",
         "vite": "^8.0.16",
         "vite-plugin-mkcert": "^2.1.0"
     },
