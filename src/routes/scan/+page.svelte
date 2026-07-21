@@ -35,7 +35,6 @@
 
     let insumo: Insumo | undefined = $state();
 
-    // TODO: Fix grayed-out feed by picking the right device.
     onMount(async () => {
         if (await QrScanner.hasCamera()) {
             has_camera = true;
@@ -43,8 +42,10 @@
                 highlightScanRegion: true,
                 highlightCodeOutline: true,
                 returnDetailedScanResult: true,
+                maxScansPerSecond: 5,
                 preferredCamera: "environment",
             });
+
             try {
                 await qr_scanner.start();
                 started = true;
@@ -72,7 +73,11 @@
 
             if (response.status != 404 && insumo_data.length > 0) {
                 insumo = insumo_data[0];
+            } else {
+                error = `Insumo não encontrado`;
             }
+        } else {
+            error = `Código inválido`;
         }
     };
 </script>
@@ -111,7 +116,6 @@
     :global(body) {
         width: 100vw;
         height: 100vh;
-        overflow: hidden;
     }
 
     #scanner-feed {
