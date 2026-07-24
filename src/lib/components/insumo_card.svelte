@@ -1,18 +1,28 @@
 <script lang="ts">
+    import type { ClassValue } from "svelte/elements";
+
     interface Props {
         foto: string | null;
         nome: string;
         cod: string;
         ferramenta: boolean;
         obs: string | null;
+        class?: ClassValue;
     }
 
-    let { foto, nome, cod, ferramenta, obs }: Props = $props();
+    let {
+        foto,
+        nome,
+        cod,
+        ferramenta,
+        obs,
+        class: className = "",
+    }: Props = $props();
 </script>
 
 <a
     href={`insumos/${cod}`}
-    class="flex w-full items-start gap-3 bg-neutral-primary-soft p-6 border border-default rounded-base shadow-xs flex-row max-w-xl"
+    class={`flex w-full items-start gap-3 bg-neutral-primary-soft p-6 border border-default rounded-base shadow-xs flex-row max-w-xl ${className}`}
 >
     <img
         class="object-cover rounded-base h-auto w-28 md:w-48"

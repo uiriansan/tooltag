@@ -7,9 +7,17 @@ export const GET: RequestHandler = async ({ params }) => {
     if (/^[A-Z]-[0-9]{3}$/.test(params.cod_interno)) {
       const insumo = await get_insumo_by_cod_interno(params.cod_interno);
       return json(insumo, {
-        status: insumo ? 200 : 404,
+        status: insumo && insumo.length > 0 ? 200 : 404,
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
     }
   }
-  return json([], { status: 404 });
+  return json([], {
+    status: 404,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 };

@@ -7,6 +7,13 @@ node_modules
 .wrangler
 .svelte-kit/
 build/
+deploy/data/backups/
+# Ignorar tudo em uploads/
+data/uploads/*
+# exceto:
+!data/uploads/ferramenta.png
+!data/uploads/insumo.png
+
 
 # OS
 .DS_Store

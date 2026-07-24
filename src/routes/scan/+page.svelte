@@ -2,6 +2,7 @@
     import { onMount, onDestroy } from "svelte";
     import QrScanner from "qr-scanner";
     import InsumoCard from "$lib/components/insumo_card.svelte";
+    import Close from "~icons/fluent/add-24-regular";
 
     let qr_scanner: QrScanner;
     // @ts-ignore
@@ -34,13 +35,14 @@
     }
 
     let insumo: Insumo | undefined = $state();
+    let should_scan = $state(true);
 
     onMount(async () => {
         if (await QrScanner.hasCamera()) {
             has_camera = true;
             qr_scanner = new QrScanner(video_el, check_result, {
-                highlightScanRegion: true,
-                highlightCodeOutline: true,
+                highlightScanRegion: false,
+                highlightCodeOutline: false,
                 returnDetailedScanResult: true,
                 maxScansPerSecond: 5,
                 preferredCamera: "environment",
@@ -53,7 +55,7 @@
                 if (err instanceof Error) error = err.message;
             }
         } else {
-            error = `No camera detect!`;
+            error = `Nenhuma câmera disponível`;
         }
     });
 
@@ -65,7 +67,7 @@
     });
 
     const check_result = async (result: QrScanner.ScanResult) => {
-        if (insumo) return;
+        if (insumo || !should_scan) return;
 
         if (/^[A-Z]-[0-9]{3}$/.test(result.data.trim())) {
             const response = await fetch(`/api/insumo/${result.data.trim()}`);
@@ -80,34 +82,54 @@
             error = `Código inválido`;
         }
     };
+
+    function close_card() {
+        should_scan = false;
+        insumo = undefined;
+        setTimeout(() => {
+            should_scan = true;
+        }, 2000);
+    }
 </script>
 
 {#if !started && has_camera}
     <h1>Carregando...</h1>
 {/if}
 
-<video
-    bind:this={video_el}
-    class:hidden={!started}
-    autoplay
-    muted
-    playsinline
-    id="scanner-feed"
-    class="w-screen h-screen"
-></video>
-
-<canvas bind:this={prev_canvas} class="hidden w-screen h-screen"></canvas>
+<div class="">
+    <video
+        bind:this={video_el}
+        class:hidden={!started}
+        autoplay
+        muted
+        playsinline
+        id="scanner-feed"
+        onclick={() => (insumo ? close_card() : (should_scan = true))}
+        class="min-w-screen min-h-screen fixed bottom-0 right-0 top-0 left-0 object-cover"
+    ></video>
+</div>
 
 <p>{error}</p>
 
 {#if insumo}
-    <div class="absolute bottom-0 slide-up m-2">
+    <div class="absolute bottom-0 slide-up m-2 overflow-visible">
+        <div class="flex justify-center mb-5">
+            <button
+                type="button"
+                onclick={close_card}
+                class="p-2 rounded-full bg-neutral-primary-soft text-heading
+                border border-heading"
+            >
+                <Close class="rotate-45 w-10 h-10" />
+            </button>
+        </div>
         <InsumoCard
             ferramenta={insumo.ferramenta}
             foto={insumo.foto}
             cod={insumo.cod_interno}
             nome={insumo.nome}
             obs={insumo.observacoes}
+            class="shadow-xl shadow-heading/50"
         />
     </div>
 {/if}
@@ -116,6 +138,7 @@
     :global(body) {
         width: 100vw;
         height: 100vh;
+        overflow: hidden;
     }
 
     #scanner-feed {
