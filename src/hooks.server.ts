@@ -7,6 +7,6 @@ cron.schedule("0 0 * * *", async () => {
   await backup_database();
 });
 
-// TODO: Add PM2.
+// TODO: Add systemd service.
 // TODO: Add Winston and Windon-daily-rotate-file
 // TODO: Deploy Docker container.

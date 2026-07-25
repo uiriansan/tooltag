@@ -7,12 +7,12 @@ node_modules
 .wrangler
 .svelte-kit/
 build/
-deploy/data/backups/
+data/prod/backups/
 # Ignorar tudo em uploads/
-data/uploads/*
+data/dev/uploads/*
 # exceto:
-!data/uploads/ferramenta.png
-!data/uploads/insumo.png
+!data/dev/uploads/ferramenta.png
+!data/dev/uploads/insumo.png
 
 
 # OS
@@ -29,5 +29,5 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-migration/
+migrations/
 *.sqlite

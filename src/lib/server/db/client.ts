@@ -10,6 +10,9 @@ let db: ReturnType<typeof drizzle>;
 
 if (!building) {
   const sqlite = new Database(DB_PATH);
+
+  sqlite.pragma("journal_mode = WAL");
+
   db = drizzle(sqlite);
 }
 

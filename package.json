@@ -36,7 +36,8 @@
         "typescript": "^6.0.3",
         "unplugin-icons": "^23.0.1",
         "vite": "^8.0.16",
-        "vite-plugin-mkcert": "^2.1.0"
+        "vite-plugin-mkcert": "^2.1.0",
+        "drizzle-seed": "^0.3.1"
     },
     "dependencies": {
         "@humanspeak/svelte-virtual-list": "^0.5.11",
@@ -44,11 +45,9 @@
         "bcrypt": "^6.0.0",
         "better-sqlite3": "^12.11.1",
         "drizzle-orm": "^0.45.2",
-        "drizzle-seed": "^0.3.1",
         "flowbite": "^4.0.2",
         "jsonwebtoken": "^9.0.3",
         "node-cron": "^4.6.0",
-        "npm": "^12.0.1",
         "qr-scanner": "^1.4.2",
         "tailwind-merge": "^3.6.0"
     },
