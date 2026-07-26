@@ -8,12 +8,12 @@ node_modules
 .svelte-kit/
 build/
 data/prod/backups/
+
 # Ignorar tudo em uploads/
 data/dev/uploads/*
 # exceto:
 !data/dev/uploads/ferramenta.png
 !data/dev/uploads/insumo.png
-
 
 # OS
 .DS_Store
@@ -22,8 +22,8 @@ Thumbs.db
 # Env
 .env
 .env.*
-!.env.example
-!.env.test
+!.env.development
+!.env.production-copy
 
 # Vite
 vite.config.js.timestamp-*
@@ -31,3 +31,7 @@ vite.config.ts.timestamp-*
 
 migrations/
 *.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.crt
+*.key

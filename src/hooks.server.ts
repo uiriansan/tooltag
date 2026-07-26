@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { backup_database } from "$lib/server/db/client";
+import { backup_database } from "$lib/server/db";
 
 // Backup automático do banco de dados:
 // Executa diariamente, à meia-noite.

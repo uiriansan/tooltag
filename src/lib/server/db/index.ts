@@ -1,25 +1,35 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import { DB_PATH } from "$env/static/private";
-import { building } from "$app/environment";
-import { dev } from "$app/environment";
+import { env } from "$env/dynamic/private";
 import path from "path";
 import fs from "fs/promises";
+import * as schema from "./schema";
 
-let db: ReturnType<typeof drizzle>;
+const global_db = globalThis as unknown as {
+  sqlite: Database.Database | undefined;
+};
 
-if (!building) {
-  const sqlite = new Database(DB_PATH);
+const sqlite =
+  global_db.sqlite ??
+  new Database(env.DB_PATH ?? "./data/dev/development.sqlite");
 
-  sqlite.pragma("journal_mode = WAL");
-
-  db = drizzle(sqlite);
+// Previnir Vite hot reloading de re-importar o módulo em `dev`:
+if (env.NODE_ENV !== "production") {
+  global_db.sqlite = sqlite;
 }
 
-const backup_database = async () => {
+sqlite.pragma("foreign_keys = ON");
+sqlite.pragma("journal_mode = WAL");
+
+// Use `import { db } from "$lib/server/db` para importar o client como "singleton".
+export const db = drizzle(sqlite, { schema });
+
+/* -------------------------------------------------- */
+
+export const backup_database = async () => {
   const date_str = new Date().toISOString().split("T")[0];
-  const backup_dir = `${path.dirname(DB_PATH)}/backups`;
-  const backup_path = `${backup_dir}/database-${date_str}.sqlite`;
+  const backup_dir = `${path.dirname(env.DATA_PATH ?? "./data/prod")}/backups`;
+  const backup_path = `${backup_dir}/production-${date_str}.sqlite`;
 
   try {
     // Criar diretório se não existir.
@@ -57,6 +67,3 @@ const backup_database = async () => {
     );
   }
 };
-
-// TODO: export singleton
-export { db, backup_database };

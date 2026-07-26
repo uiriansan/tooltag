@@ -1,5 +1,9 @@
-import { db } from "./db/client.ts";
-import { insumos, insumos_ferramentas, insumos_maquinas } from "./db/schema.ts";
+import { db } from "$lib/server/db";
+import {
+  insumos,
+  insumos_ferramentas,
+  insumos_maquinas,
+} from "$lib/server/db/schema";
 import { eq } from "drizzle-orm";
 
 export const get_insumos = async () => {

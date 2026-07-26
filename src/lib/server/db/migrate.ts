@@ -9,7 +9,7 @@ const db = drizzle(database);
 
 async function main() {
   console.log("Executando migrations pendentes...");
-  await migrate(db, { migrationsFolder: "./src/lib/server/db/migrations" });
+  await migrate(db, { migrationsFolder: "./data/migrations" });
 
   const users = await db.select().from(usuarios).limit(1);
 

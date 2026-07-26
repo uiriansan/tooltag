@@ -4,24 +4,29 @@ import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig, loadEnv } from "vite";
 import mkcert from "vite-plugin-mkcert";
 import Icons from "unplugin-icons/vite";
+import fs from "node:fs";
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
+  const env = loadEnv(mode, process.cwd(), "VITE_");
 
   return {
     server: {
-      port: parseInt(env.PORT) || 8080,
+      port: parseInt(env.VITE_PORT) || 3000,
       strictPort: true,
-      https: true,
+      https: parseInt(env.VITE_USE_HTTPS) === 1,
       fs: {
         allow: ["data/uploads"],
       },
     },
     preview: {
-      port: parseInt(env.PORT) || 8080,
+      port: parseInt(env.VITE_PORT) || 3000,
     },
     plugins: [
-      mkcert(), // Permitir https em LAN (necessário para acessar câmera)
+      // Permitir https em LAN (necessário para acessar câmera):
+      parseInt(env.VITE_USE_HTTPS) === 1 &&
+        mkcert({
+          hosts: env.VITE_HTTPS_HOSTS.split(","),
+        }),
       Icons({
         compiler: "svelte",
       }),
@@ -32,10 +37,6 @@ export default defineConfig(({ mode }) => {
           runes: ({ filename }) =>
             filename.split(/[/\\]/).includes("node_modules") ? undefined : true,
         },
-
-        // adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
-        // If your environment is not supported, or you settled on a specific environment, switch out the adapter.
-        // See https://svelte.dev/docs/kit/adapters for more information about adapters.
         adapter: adapter({ out: "build/" }),
       }),
     ],
