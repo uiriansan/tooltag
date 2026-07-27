@@ -35,6 +35,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(`Erro (migrate_and_seed): ${err}`);
+  console.log((err as any).cause);
   process.exit(1);
 });

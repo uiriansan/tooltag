@@ -35,3 +35,4 @@ migrations/
 *.sqlite-wal
 *.crt
 *.key
+logs/

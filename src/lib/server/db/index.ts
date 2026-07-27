@@ -4,6 +4,7 @@ import { env } from "$env/dynamic/private";
 import path from "path";
 import fs from "fs/promises";
 import * as schema from "./schema";
+import { logger } from "$lib/server/logger";
 
 const global_db = globalThis as unknown as {
   sqlite: Database.Database | undefined;
@@ -35,12 +36,12 @@ export const backup_database = async () => {
     // Criar diretório se não existir.
     await fs.mkdir(backup_dir, { recursive: true });
     await db.$client.backup(backup_path);
-    console.log("DB Backup: Backup do banco salvo!");
-  } catch (err) {
-    console.error(
-      "DB Backup: Não foi possível realizar o backup do banco: ",
-      err,
-    );
+    logger.info(`Backup do banco salvo em '${backup_path}'.`);
+  } catch (err: any) {
+    logger.error("Não foi possível realizar o backup do banco: ", {
+      error: err.message,
+    });
+
     return;
   }
 
@@ -57,13 +58,12 @@ export const backup_database = async () => {
 
       for (let i = 0; i < n_extra_backups; i++) {
         await fs.unlink(`${backup_dir}/${backups_by_date[i]}`);
-        console.log(`DB Backup: backup antigo deletado: ${backups_by_date[i]}`);
+        logger.info(`Backup antigo deletado: ${backups_by_date[i]}`);
       }
     }
-  } catch (err) {
-    console.error(
-      "DB Backup: Não foi possível deletar os backups antigos: ",
-      err,
-    );
+  } catch (err: any) {
+    logger.error("Não foi possível deletar os backups antigos: ", {
+      error: err.message,
+    });
   }
 };

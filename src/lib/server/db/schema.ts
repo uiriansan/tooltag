@@ -1,12 +1,14 @@
 import { sql } from "drizzle-orm";
-import { boolean, foreignKey } from "drizzle-orm/gel-core";
 import {
   sqliteTable,
   primaryKey,
+  foreignKey,
   check,
   integer,
   text,
   real,
+  index,
+  uniqueIndex,
   type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
@@ -23,10 +25,14 @@ export const usuarios = sqliteTable(
       .$defaultFn(() => new Date()),
     atualizado_em: integer("atualizado_em", { mode: "timestamp" })
       .notNull()
-      .$defaultFn(() => new Date()),
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
+    bloqueado: integer("bloqueado", { mode: "boolean" })
+      .notNull()
+      .default(false),
   },
-  (usuarios) => [
-    check("cargo", sql`${usuarios.cargo} in (0, 1)`), // `0` gestor, `1` admin
+  (t) => [
+    check("cargo", sql`${t.cargo} in (0, 1)`), // `0` gestor, `1` admin
   ],
 );
 
@@ -43,60 +49,89 @@ export const tipos_ferramentas = sqliteTable("TiposFerramentas", {
 });
 
 // CREATE TABLE IF NOT EXISTS Insumos (
-export const insumos = sqliteTable("Insumos", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  cod_fabricacao: text("cod_fabricacao"),
-  cod_interno: text("cod_interno").notNull(),
-  nome: text("nome").notNull(),
-  observacoes: text("observacoes"),
-  foto_path: text("foto_path"),
-  material: text("material"), // material do insumo
-  categoria: integer("categoria").references(() => categorias_insumos.id),
-  adicionado_em: integer("adicionado_em", { mode: "timestamp" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  adicionado_por: integer("adicionado_por")
-    .notNull()
-    .references(() => usuarios.id),
-  atualizado_em: integer("atualizado_em", { mode: "timestamp" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  completo: integer("completo", { mode: "boolean" }).notNull().default(false), // Se o cadastro do insumo foi ou não finalizado.
-  obsoleto: integer("obsoleto", { mode: "boolean" }).notNull().default(false),
-  obsoleto_substituto: integer("obsoleto_substituto").references(
-    (): AnySQLiteColumn => insumos.id,
-  ),
-});
+export const insumos = sqliteTable(
+  "Insumos",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    cod_fabricacao: text("cod_fabricacao"),
+    cod_interno: text("cod_interno").notNull(),
+    nome: text("nome").notNull(),
+    observacoes: text("observacoes"),
+    foto_path: text("foto_path"),
+    material: text("material"), // material do insumo
+    categoria_id: integer("categoria_id").references(
+      () => categorias_insumos.id,
+      {
+        onDelete: "set null",
+      },
+    ),
+    adicionado_em: integer("adicionado_em", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    adicionado_por: integer("adicionado_por")
+      .notNull()
+      .references(() => usuarios.id),
+    atualizado_em: integer("atualizado_em", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
+    completo: integer("completo", { mode: "boolean" }).notNull().default(false), // Se o cadastro do insumo foi ou não finalizado.
+    obsoleto: integer("obsoleto", { mode: "boolean" }).notNull().default(false),
+    obsoleto_substituto: integer("obsoleto_substituto").references(
+      (): AnySQLiteColumn => insumos.id,
+    ),
+  },
+  (t) => [
+    check(
+      "insumos_obsoleto_non_recursive_check",
+      sql`${t.id} != ${t.obsoleto_substituto}`,
+    ),
+    index("insumos_adicionado_por_idx").on(t.adicionado_por),
+  ],
+);
 
 // CREATE TABLE IF NOT EXISTS Ferramentas (
-export const ferramentas = sqliteTable("Ferramentas", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  cod_fabricacao: text("cod_fabricacao"),
-  cod_interno: text("cod_interno").notNull(),
-  nome: text("nome"),
-  observacoes: text("observacoes"),
-  foto_path: text("foto_path"),
-  material: text("material"), // Material para qual a ferramenta é destinada
-  tipo: integer("tipo").references(() => tipos_ferramentas.id),
-  altura_min: real("altura_min"),
-  altura_max: real("altura_max"),
-  rpm: integer("rpm"),
-  avanco_min: real("avanco_min"),
-  adicionado_em: integer("adicionado_em", { mode: "timestamp" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  adicionado_por: integer("adicionado_por")
-    .notNull()
-    .references(() => usuarios.id),
-  atualizado_em: integer("atualizado_em", { mode: "timestamp" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  completo: integer("completo", { mode: "boolean" }).notNull().default(false), // Se o cadastro da ferramenta foi ou não finalizado.
-  obsoleto: integer("obsoleto", { mode: "boolean" }).notNull().default(false),
-  obsoleto_substituto: integer("obsoleto_substituto").references(
-    (): AnySQLiteColumn => ferramentas.id,
-  ),
-});
+export const ferramentas = sqliteTable(
+  "Ferramentas",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    cod_fabricacao: text("cod_fabricacao"),
+    cod_interno: text("cod_interno").notNull(),
+    nome: text("nome").notNull(),
+    observacoes: text("observacoes"),
+    foto_path: text("foto_path"),
+    material: text("material"), // Material para qual a ferramenta é destinada
+    tipo_id: integer("tipo_id").references(() => tipos_ferramentas.id, {
+      onDelete: "set null",
+    }),
+    altura_min: real("altura_min"),
+    altura_max: real("altura_max"),
+    rpm: real("rpm"),
+    avanco_min: real("avanco_min"),
+    adicionado_em: integer("adicionado_em", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    adicionado_por: integer("adicionado_por")
+      .notNull()
+      .references(() => usuarios.id),
+    atualizado_em: integer("atualizado_em", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
+    completo: integer("completo", { mode: "boolean" }).notNull().default(false), // Se o cadastro da ferramenta foi ou não finalizado.
+    obsoleto: integer("obsoleto", { mode: "boolean" }).notNull().default(false),
+    obsoleto_substituto: integer("obsoleto_substituto").references(
+      (): AnySQLiteColumn => ferramentas.id,
+    ),
+  },
+  (t) => [
+    check(
+      "ferramentas_obsoleto_non_recursive_check",
+      sql`${t.id} != ${t.obsoleto_substituto}`,
+    ),
+    index("ferramentas_adicionado_por_idx").on(t.adicionado_por),
+  ],
+);
 
 // CREATE TABLE IF NOT EXISTS InsumosFerramentas (
 export const insumos_ferramentas = sqliteTable(
@@ -104,19 +139,21 @@ export const insumos_ferramentas = sqliteTable(
   {
     ferramenta_id: integer("ferramenta_id")
       .notNull()
-      .references(() => ferramentas.id),
+      .references(() => ferramentas.id, {
+        onDelete: "cascade",
+      }),
     insumo_id: integer("insumo_id")
       .notNull()
-      .references(() => insumos.id),
+      .references(() => insumos.id, {
+        onDelete: "cascade",
+      }),
     quantidade: integer("quantidade").notNull().default(1),
     observacoes: text("observacoes"),
   },
-  (insumos_ferramentas) => [
+  (t) => [
+    check("ferramenta_insumo_positive_qtd", sql`${t.quantidade} > 0`),
     primaryKey({
-      columns: [
-        insumos_ferramentas.ferramenta_id,
-        insumos_ferramentas.insumo_id,
-      ],
+      columns: [t.ferramenta_id, t.insumo_id],
     }),
   ],
 );
@@ -131,7 +168,7 @@ export const celulas = sqliteTable("Celulas", {
 export const maquinas = sqliteTable("Maquinas", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   nome: text("nome").notNull().unique(),
-  celula: integer("celula")
+  celula_id: integer("celula_id")
     .notNull()
     .references(() => celulas.id),
 });
@@ -142,14 +179,18 @@ export const insumos_maquinas = sqliteTable(
   {
     maquina_id: integer("maquina_id")
       .notNull()
-      .references(() => maquinas.id),
+      .references(() => maquinas.id, {
+        onDelete: "cascade",
+      }),
     insumo_id: integer("insumo_id")
       .notNull()
-      .references(() => insumos.id),
+      .references(() => insumos.id, {
+        onDelete: "cascade",
+      }),
   },
-  (insumos_maquinas) => [
+  (t) => [
     primaryKey({
-      columns: [insumos_maquinas.maquina_id, insumos_maquinas.insumo_id],
+      columns: [t.maquina_id, t.insumo_id],
     }),
   ],
 );
@@ -165,12 +206,9 @@ export const ferramentas_maquinas = sqliteTable(
       .notNull()
       .references(() => ferramentas.id),
   },
-  (ferramentas_maquinas) => [
+  (t) => [
     primaryKey({
-      columns: [
-        ferramentas_maquinas.maquina_id,
-        ferramentas_maquinas.ferramenta_id,
-      ],
+      columns: [t.maquina_id, t.ferramenta_id],
     }),
   ],
 );
@@ -190,16 +228,14 @@ export const ocorrencias = sqliteTable(
     aprovado_por: integer("aprovado_por").references(() => usuarios.id),
     data_aprovacao: integer("data_aprovacao", { mode: "timestamp" }),
     observacao: text("observacao"),
-    maquina: integer("maquina")
+    maquina_id: integer("maquina_id")
       .notNull()
       .references(() => maquinas.id),
   },
-  (ocorrencias) => [
-    check("ocorrencia_status_check", sql`${ocorrencias.status} in (0, 1)`), // `0` pendente, `1` atendida.
-    check(
-      "ocorrencia_prioridade_check",
-      sql`${ocorrencias.prioridade} in (0, 1, 2, 3)`,
-    ), // `0` baixa, `1` média, `2` alta, `3` crítica.
+  (t) => [
+    check("ocorrencia_status_check", sql`${t.status} in (0, 1)`), // `0` pendente, `1` atendida.
+    check("ocorrencia_prioridade_check", sql`${t.prioridade} in (0, 1, 2, 3)`), // `0` baixa, `1` média, `2` alta, `3` crítica.
+    index("ocorrencias_maquina_id_idx").on(t.maquina_id),
   ],
 );
 
@@ -207,25 +243,52 @@ export const ocorrencias = sqliteTable(
 export const insumos_ocorrencias = sqliteTable(
   "InsumosOcorrencias",
   {
-    tipo: integer("tipo").notNull(),
+    tipo: integer("tipo").notNull().default(0),
     ocorrencia_id: integer("ocorrencia_id")
       .notNull()
-      .references(() => ocorrencias.id),
+      .references(() => ocorrencias.id, {
+        onDelete: "cascade",
+      }),
     insumo_id: integer("insumo_id").references(() => insumos.id),
     ferramenta_id: integer("ferramenta_id").references(() => ferramentas.id),
-    quantidade: integer("quantidade").notNull(),
+    quantidade: integer("quantidade").notNull().default(1),
   },
-  (insumos_ocorrencias) => [
-    primaryKey({
-      columns: [
-        insumos_ocorrencias.ocorrencia_id,
-        insumos_ocorrencias.ferramenta_id,
-        insumos_ocorrencias.insumo_id,
+  (t) => [
+    // FK composta para garantir que `insumo_id` e `ferramenta_id`
+    // formam uma combinação válida quando `tipo = 2`:
+    foreignKey({
+      columns: [t.ferramenta_id, t.insumo_id],
+      foreignColumns: [
+        insumos_ferramentas.ferramenta_id,
+        insumos_ferramentas.insumo_id,
       ],
     }),
+    check("ocorrencia_insumo_tipo_check", sql`${t.tipo} in (0, 1, 2)`), // `0` insumo solto, `1` ferramenta, `2` insumo que é parte de uma ferramenta.
+    check("ocorrencia_insumo_positive_qtd", sql`${t.quantidade} > 0`),
+
+    // Por limitações do SQLite, PKs compostas não se dão bem com nullable FKs.
+    // UNIQUE INDEXes são a solução:
     check(
-      "ocorrencia_insumo_tipo_check",
-      sql`${insumos_ocorrencias.tipo} in (0, 1)`,
-    ), // `0` insumo, `1` ferramenta
+      "ocorrencia_insumo_exclusive_check",
+      sql`
+          (${t.tipo} = 0 AND ${t.insumo_id} IS NOT NULL AND ${t.ferramenta_id} IS NULL) OR
+          (${t.tipo} = 1 AND ${t.ferramenta_id} IS NOT NULL AND ${t.insumo_id} IS NULL) OR
+          (${t.tipo} = 2 AND ${t.insumo_id} IS NOT NULL AND ${t.ferramenta_id} IS NOT NULL)
+        `,
+    ),
+
+    index("ocorrencia_insumo_ocorrencia_idx").on(t.ocorrencia_id),
+
+    uniqueIndex("insumos_ocorrencias_insumo_uq")
+      .on(t.ocorrencia_id, t.insumo_id)
+      .where(sql`${t.tipo} = 0`),
+
+    uniqueIndex("insumos_ocorrencias_ferramenta_uq")
+      .on(t.ocorrencia_id, t.ferramenta_id)
+      .where(sql`${t.tipo} = 1`),
+
+    uniqueIndex("insumos_ocorrencias_insumo_ferramenta_uq")
+      .on(t.ocorrencia_id, t.insumo_id, t.ferramenta_id)
+      .where(sql`${t.tipo} = 2`),
   ],
 );
