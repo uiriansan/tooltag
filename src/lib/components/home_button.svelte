@@ -18,7 +18,7 @@
     {/if}
 
     <h5
-        class="mb-3 line-clamp-2 font-semibold tracking-tight text-heading text-center"
+        class="mb-3 line-clamp-2 font-semibold tracking-tight text-fg-brand-subtle text-center"
     >
         {text}
     </h5>

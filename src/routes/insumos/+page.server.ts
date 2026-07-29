@@ -1,8 +1,7 @@
-import type { PageServerData } from './$types';
-import { get_insumos } from "$lib/server/insumos";
+import { redirect } from "@sveltejs/kit";
+import type { PageServerData } from "../$types";
 
-export const load: PageServerData = async () => {
-    return {
-        insumos: await get_insumos()
-    };
+// @ts-ignore
+export const load: PageServerData = ({ params }) => {
+  redirect(307, `/itens?insumos`);
 };

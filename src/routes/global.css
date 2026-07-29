@@ -1,14 +1,51 @@
 @import 'tailwindcss';
 
 /* Flowbite setup: */
-@import "flowbite/src/themes/default";
+@import "flowbite/src/themes/minimal";
 @plugin "flowbite/plugin";
-@source "../../node_modules/flowbite/";
+@source "../node_modules/flowbite/";
 
-/* Variáveis CSS */
-:root {
-    --primary-color: hsla(204, 70%, 38%, 1.0);
-    --accent-color: hsla(204, 64%, 35%, 1.0);
+@theme {
+    /* --color-brand: #00519f; */
+    --color-brand: #00519f;
+    --color-brand-content: white;
+
+    /* Stronger interaction states */
+    --color-brand-strong: oklch(0.39 0.19 253);
+    --color-brand-strong-content: white;
+
+    /* Highest emphasis / pressed / active states */
+    --color-brand-emphasis: oklch(0.32 0.16 253);
+    --color-brand-emphasis-content: white;
+
+    /* Soft backgrounds / secondary surfaces */
+    --color-brand-muted: oklch(0.90 0.045 253);
+    --color-brand-muted-content: oklch(0.30 0.12 253);
+
+    /* Subtle backgrounds / hover areas */
+    --color-brand-subtle: oklch(0.96 0.018 253);
+    --color-brand-subtle-content: oklch(0.36 0.14 253);
+}
+
+:root.dark {
+    --color-brand: #00519f;
+    --color-brand-content: white;
+
+    /* Stronger interaction states */
+    --color-brand-strong: oklch(0.39 0.19 253);
+    --color-brand-strong-content: white;
+
+    /* Highest emphasis / pressed / active states */
+    --color-brand-emphasis: oklch(0.32 0.16 253);
+    --color-brand-emphasis-content: white;
+
+    /* Soft backgrounds / secondary surfaces */
+    --color-brand-muted: oklch(0.90 0.045 253);
+    --color-brand-muted-content: oklch(0.30 0.12 253);
+
+    /* Subtle backgrounds / hover areas */
+    --color-brand-subtle: oklch(0.96 0.018 253);
+    --color-brand-subtle-content: oklch(0.36 0.14 253);
 }
 
 @layer base {

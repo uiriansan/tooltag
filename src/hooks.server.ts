@@ -35,6 +35,7 @@ export const handleError: HandleServerError = async ({
   logger.error(`${event.request.method} ${event.url.pathname}`, {
     status: status,
     message,
+    error: status === 500 ? error : "",
   });
 
   return {

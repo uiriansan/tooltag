@@ -6,13 +6,12 @@
     let { data }: PageProps = $props();
 </script>
 
-<div class="flex gap-2 flex-wrap">
+<div class="flex gap-2 flex-wrap" data-sveltekit-preload-data="off">
     {#each data.insumos as ins, i}
         <InsumoCard
             nome={ins.nome}
             cod={ins.cod_interno}
-            foto={ins.foto}
-            ferramenta={ins.ferramenta}
+            foto={ins.foto_path as string}
             obs={ins.observacoes}
         />
     {/each}

@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
       https: parseInt(env.VITE_USE_HTTPS) === 1,
       fs: {
-        allow: ["data/uploads"],
+        allow: ["data/dev/uploads", "data/prod/uploads"],
       },
     },
     preview: {

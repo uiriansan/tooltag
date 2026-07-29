@@ -330,7 +330,9 @@ async function main() {
         foto_path: f.weightedRandom([
           {
             weight: 0.5,
-            value: f.phoneNumber({ template: "/uploads/insumos/#####.jpg" }),
+            value: f.default({
+              defaultValue: `${process.env.DATA_PATH?.replace("./", "/")}/uploads/teste.png`,
+            }),
           },
           { weight: 0.5, value: f.default({ defaultValue: null }) },
         ]),
@@ -364,7 +366,7 @@ async function main() {
       columns: {
         // template exigido: "H-###" (1.000 combinações para 1.000 linhas — cabe certinho).
         // `phoneNumber` já é sempre único por padrão, não aceita `isUnique`.
-        cod_interno: f.phoneNumber({ template: "H-###" }),
+        cod_interno: f.phoneNumber({ template: "H###" }),
         cod_fabricacao: f.weightedRandom([
           { weight: 0.7, value: f.phoneNumber({ template: "FAB-#####" }) },
           { weight: 0.3, value: f.default({ defaultValue: null }) },
@@ -377,8 +379,8 @@ async function main() {
         foto_path: f.weightedRandom([
           {
             weight: 0.5,
-            value: f.phoneNumber({
-              template: "/uploads/ferramentas/#####.jpg",
+            value: f.default({
+              defaultValue: `${process.env.DATA_PATH?.replace("./", "/")}/uploads/teste.png`,
             }),
           },
           { weight: 0.5, value: f.default({ defaultValue: null }) },

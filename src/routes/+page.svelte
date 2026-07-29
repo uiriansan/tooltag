@@ -1,6 +1,6 @@
 <script lang="ts">
     import logo_tooltag from "$lib/assets/tooltag.png";
-    import logo_medal from "$lib/assets/medal.svg";
+    import MedalLogo from "$lib/components/medal_logo.svelte";
     import Button from "$lib/components/button.svelte";
     import HomeButton from "$lib/components/home_button.svelte";
 
@@ -15,11 +15,11 @@
 <main class="min-h-screen flex flex-col p-6 justify-center items-center">
     <div class="home-icons flex justify-center gap-5">
         <img src={logo_tooltag} alt="Logo tooltag" width="100px" />
-        <img src={logo_medal} alt="Logo Medal" width="70px" />
+        <MedalLogo width="70px" />
     </div>
 
     <div class="grid grid-cols-2 gap-2 mt-10 justify-stretch items-stretch">
-        <HomeButton text="Insumos" Icon={BoxSearch} url="insumos" />
+        <HomeButton text="Insumos" Icon={BoxSearch} url="itens" />
         <HomeButton text="Ler QrCode" Icon={QrScan} url="scan" />
         <HomeButton
             text="Ocorrências"

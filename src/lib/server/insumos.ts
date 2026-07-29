@@ -4,13 +4,22 @@ import {
   insumos_ferramentas,
   insumos_maquinas,
 } from "$lib/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql, count } from "drizzle-orm";
+import { env } from "$env/dynamic/private";
+import { base } from "$app/paths";
+import { logger } from "./logger";
 
 export const get_insumos = async () => {
   const insumos_data = await db
-    .select()
+    .select({
+      nome: insumos.nome,
+      foto_path: sql`IFNULL(${insumos.foto_path}, ${env.DATA_PATH} || '/uploads/insumo.png')`,
+      cod_interno: insumos.cod_interno,
+      observacoes: insumos.observacoes,
+    })
     .from(insumos)
     .orderBy(insumos.cod_interno);
+
   return insumos_data;
 };
 
@@ -32,7 +41,12 @@ export const get_insumos_filter = async (
 
 export const get_insumo_by_cod_interno = async (cod_interno: string) => {
   const insumos_data = await db
-    .select()
+    .select({
+      nome: insumos.nome,
+      foto_path: sql`IFNULL(${insumos.foto_path}, ${env.DATA_PATH} || '/uploads/insumo.png')`,
+      cod_interno: insumos.cod_interno,
+      observacoes: insumos.observacoes,
+    })
     .from(insumos)
     .where(eq(insumos.cod_interno, cod_interno))
     .limit(1);
