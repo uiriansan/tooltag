@@ -6,26 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="text-scale" content="scale" />
     %sveltekit.head%
+
+    <script>
+        <!-- Force Tailwind to use browser theme preferences: -->
+        (function () {
+            try {
+                const theme = localStorage.getItem('color-theme');
+                const is_dark = theme === "dark" || (!theme && window.matchMedia(`(prefers-color-scheme: dark)`).matches);
+                if (is_dark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+
+            } catch (e) { }
+        })();
+    </script>
 </head>
 
-<body data-sveltekit-preload-data="hover">
+<body>
     <div style="display: contents">%sveltekit.body%</div>
 
     <!-- Include Flowbite JS: -->
     <script src="../node_modules/flowbite/dist/flowbite.min.js"></script>
-
-    <!-- Force Tailwind to use browser theme preferences: -->
-    <script>
-        if (
-            localStorage.getItem('color-theme') === 'dark' ||
-            (!('color-theme' in localStorage) &&
-                window.matchMedia('(prefers-color-scheme: dark)').matches)
-        ) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
 </body>
 
 </html>

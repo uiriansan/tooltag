@@ -9,7 +9,17 @@ const limiter = new RateLimiter({
 
 export const GET: RequestHandler = async (event) => {
   if (await limiter.isLimited(event)) {
-    error(429, "Aguarde um momento, ou tente novamente com um usuário logado.");
+    return json(
+      {
+        error: "Aguarde um momento, ou tente novamente com um usuário logado.",
+      },
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
   }
 
   if (event.params.cod_interno) {

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
+    import type { Insumo } from "$lib/types";
     import QrScanner from "qr-scanner";
     import InsumoCard from "$lib/components/insumo_card.svelte";
     import Close from "~icons/fluent/add-24-regular";
@@ -22,30 +23,11 @@
     let available_cameras: QrScanner.Camera[] | null = $state(null);
     let active_cam: string = $state("");
 
+    let failed_scans: string[] = [];
+
     const update_cam_capabilities = async () => {
         has_flash = await qr_scanner.hasFlash();
     };
-
-    interface Insumo {
-        id: number;
-        cod_frabricacao: string | null;
-        cod_interno: string;
-        nome: string;
-        observacoes: string | null;
-        foto_path: string | null;
-        material: string | null;
-        ferramenta: boolean;
-        tipo: number | null;
-        altura_min: number | null;
-        altura_max: number | null;
-        rpm: number | null;
-        avanco_min: number | null;
-        categoria: number | null;
-        criado_em: number;
-        atualizado_em: number;
-        adicionado_por: number | null;
-        completo: boolean;
-    }
 
     let insumo: Insumo | undefined = $state();
     let should_scan = $state(true);
@@ -133,13 +115,24 @@
             const response = await fetch(`/api/insumos/${result.data.trim()}`);
             const insumo_data = await response.json();
 
-            if (response.status != 404 && insumo_data.length > 0) {
+            if (
+                !failed_scans.includes(result.data.trim()) &&
+                response.status === 429
+            ) {
+                error = insumo_data.error || "Aguarde um momento";
+            } else if (
+                !failed_scans.includes(result.data.trim()) &&
+                response.status != 404 &&
+                insumo_data.length > 0
+            ) {
                 insumo = insumo_data[0];
                 error = "";
             } else {
+                failed_scans.push(result.data.trim());
                 error = `Insumo não encontrado`;
             }
         } else {
+            failed_scans.push(result.data.trim());
             error = `Código inválido`;
         }
     };
@@ -162,7 +155,27 @@
 </svelte:head>
 
 {#if !started && has_camera}
-    <h1>Carregando...</h1>
+    <div
+        role="status"
+        class="block min-w-screen min-h-screen fixed bottom-0 right-0 top-0 left-0 object-cover inset-0 bg-neutral-primary animate-pulse flex flex-col items-center justify-center -mt-50"
+    >
+        <svg
+            class="w-20 h-20 text-fg-disabled"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            viewBox="0 0 24 24"
+            ><path
+                stroke="currentColor"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 3v4a1 1 0 0 1-1 1H5m14-4v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7.914a1 1 0 0 1 .293-.707l3.914-3.914A1 1 0 0 1 9.914 3H18a1 1 0 0 1 1 1ZM9 12h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Zm5.697 2.395v-.733l1.269-1.219v2.984l-1.268-1.032Z"
+            /></svg
+        >
+        <span class="text-fg-disabled font-bold mt-5">Carregando...</span>
+    </div>
 {/if}
 
 <div id="video-container">
@@ -177,7 +190,11 @@
         oncontextmenu={(e) => e.preventDefault()}
         class="block min-w-screen min-h-screen fixed bottom-0 right-0 top-0 left-0 object-cover inset-0"
     ></video>
-    <div bind:this={video_overlay} class="video-overlay">
+    <div
+        bind:this={video_overlay}
+        class:hidden={!started}
+        class="video-overlay"
+    >
         <span class="corner corner-tl"></span>
         <span class="corner corner-tr"></span>
         <span class="corner corner-bl"></span>
@@ -264,7 +281,7 @@
     <div
         class="absolute bottom-0 left-0 right-0 slide-up m-2 p-4 flex justify-center bg-danger-soft border border-danger-strong rounded-base overflow-hidden"
     >
-        <p class="text-danger-strong">{error}</p>
+        <p class="text-danger-strong text-center">{error}</p>
     </div>
 {/if}
 
@@ -281,7 +298,7 @@
             </button>
         </div>
         <InsumoCard
-            foto={insumo.foto_path?.replace("./", "/")}
+            foto={insumo.foto_path?.replace("./", "/")!}
             cod={insumo.cod_interno}
             nome={insumo.nome}
             obs={insumo.observacoes}

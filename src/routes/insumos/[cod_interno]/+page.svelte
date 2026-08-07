@@ -3,6 +3,10 @@
     let { data }: PageProps = $props();
 </script>
 
+<svelte:head>
+    <title>{data.insumo[0].nome}</title>
+</svelte:head>
+
 {#if data.insumo.length == 1}
     <img
         src={data.insumo[0].foto_path.replace("./", "/")}

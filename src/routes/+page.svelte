@@ -19,7 +19,7 @@
     </div>
 
     <div class="grid grid-cols-2 gap-2 mt-10 justify-stretch items-stretch">
-        <HomeButton text="Insumos" Icon={BoxSearch} url="itens" />
+        <HomeButton text="Insumos" Icon={BoxSearch} url="insumos" />
         <HomeButton text="Ler QrCode" Icon={QrScan} url="scan" />
         <HomeButton
             text="Ocorrências"

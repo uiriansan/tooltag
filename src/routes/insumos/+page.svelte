@@ -6,6 +6,10 @@
     let { data }: PageProps = $props();
 </script>
 
+<svelte:head>
+    <title>Insumos</title>
+</svelte:head>
+
 <div class="flex gap-2 flex-wrap" data-sveltekit-preload-data="off">
     {#each data.insumos as ins, i}
         <InsumoCard
