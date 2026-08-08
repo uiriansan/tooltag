@@ -6,7 +6,7 @@ import { eq, or, like, sql, count, asc, desc } from "drizzle-orm";
 import { logger } from "./logger";
 
 export const get_ferramentas_filter = async (
-  sort: SortFerramentas = 0,
+  sort: SortFerramentas = SortFerramentas.COD_AZ,
   offset: number = 0,
   limit: number = 50,
   cod_interno: string | null,
@@ -63,4 +63,11 @@ export const get_ferramentas_filter = async (
   data = data.orderBy(sort_method);
 
   return await data;
+};
+
+export const get_tipos_ferramentas = async () => {
+  return await db
+    .select({ id: tipos_ferramentas.id, nome: tipos_ferramentas.nome })
+    .from(tipos_ferramentas)
+    .orderBy(asc(tipos_ferramentas.nome));
 };

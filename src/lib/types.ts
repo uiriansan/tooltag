@@ -20,10 +20,10 @@ export interface Insumo {
 }
 
 export enum SortFerramentas {
-  COD_AZ = 0,
-  COD_ZA,
-  DATA_ADD_NEW,
-  DATA_ADD_OLD,
-  DATA_UPD_NEW,
-  DATA_UPD_OLD,
+  COD_AZ = "COD_AZ",
+  COD_ZA = "COD_ZA",
+  DATA_ADD_NEW = "DATA_ADD_NEW",
+  DATA_ADD_OLD = "DATA_ADD_OLD",
+  DATA_UPD_NEW = "DATA_UPD_NEW",
+  DATA_UPD_OLD = "DATA_UPD_OLD",
 }

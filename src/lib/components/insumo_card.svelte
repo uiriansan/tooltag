@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import type { ClassValue } from "svelte/elements";
 
     interface Props {
@@ -8,7 +7,6 @@
         cod: string;
         obs: string | null;
         ferramenta?: boolean;
-        focus?: boolean;
         class?: ClassValue;
     }
 
@@ -18,7 +16,6 @@
         cod,
         obs,
         ferramenta,
-        focus,
         class: className = "",
     }: Props = $props();
 </script>

@@ -1,4 +1,4 @@
-import type { Insumo } from "$lib/types";
+import { type Insumo, SortFerramentas } from "$lib/types";
 import { offset } from "@popperjs/core";
 
 export const ferramentas_cache = $state<{
