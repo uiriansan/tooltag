@@ -3,7 +3,6 @@ import adapter from "@sveltejs/adapter-node";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig, loadEnv } from "vite";
 import mkcert from "vite-plugin-mkcert";
-import Icons from "unplugin-icons/vite";
 import fs from "node:fs";
 
 export default defineConfig(({ mode }) => {
@@ -27,9 +26,6 @@ export default defineConfig(({ mode }) => {
         mkcert({
           hosts: env.VITE_HTTPS_HOSTS.split(","),
         }),
-      Icons({
-        compiler: "svelte",
-      }),
       tailwindcss(),
       sveltekit({
         compilerOptions: {

@@ -39,7 +39,7 @@ export const GET: RequestHandler = async ({ url }) => {
   );
 
   // TODO: REMOVE!
-  // await delay(2000);
+  await delay(1000);
 
   logger.info(url.toString());
 

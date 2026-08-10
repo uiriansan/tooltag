@@ -32,6 +32,7 @@
     );
 
     let virtualizer: VirtualizerHandle;
+    let search_input = $state<HTMLInputElement | null>(null);
 
     const load_data = async () => {
         if (is_loading || !ferramentas_cache.has_more) return;
@@ -100,6 +101,7 @@
         if (virtualizer && restored_scroll !== null) {
             tick().then(() => {
                 virtualizer.scrollTo(restored_scroll!);
+                console.log("Scrolled: ", restored_scroll);
                 restored_scroll = null;
             });
         }
@@ -144,6 +146,13 @@
     });
 
     const join_selected_tipos = () => {
+        if (
+            selected_tipos_ferramentas.length === 0 ||
+            selected_tipos_ferramentas.length === tipos_ferramentas.length
+        ) {
+            return "Todos os tipos";
+        }
+
         let selected_nomes = [];
         for (const id of selected_tipos_ferramentas) {
             const tipo = tipos_ferramentas.find((t) => t.id === id);
@@ -151,18 +160,44 @@
         }
         return selected_nomes.join(", ");
     };
+
+    let y = $state(0);
 </script>
 
-<div class="h-screen flex gap-10 p-6">
-    <div class="flex flex-col w-80 gap-6">
+<svelte:head>
+    <title>Ferramentas</title>
+</svelte:head>
+
+<svelte:window bind:scrollY={y} />
+
+<div class="flex gap-10 md:max-w-332 md:mx-auto">
+    <aside
+        class="flex flex-col w-full h-fit shrink-0 gap-2 lg:w-90 md:gap-6 bg-accent p-2 md:p-6 rounded-lg md:mt-10"
+    >
+        <h1 class="text-lg font-bold">Ferramentas</h1>
         <div class="flex gap-2">
-            <InputGroup.Root>
+            <InputGroup.Root class="h-10">
                 <InputGroup.Input
+                    bind:ref={search_input}
                     placeholder="Código, nome ou descrição..."
                     bind:value={search_query}
+                    class=""
                 />
                 <InputGroup.Addon>
                     <SearchIcon />
+                </InputGroup.Addon>
+                <InputGroup.Addon align="inline-end">
+                    <Button
+                        variant="ghost"
+                        class="cursor-pointer"
+                        size="icon-sm"
+                        onclick={() => {
+                            search_query = "";
+                            search_input?.focus();
+                        }}
+                    >
+                        <XIcon />
+                    </Button>
                 </InputGroup.Addon>
             </InputGroup.Root>
             <Select.Root
@@ -178,7 +213,7 @@
                     });
                 }}
             >
-                <Select.Trigger class="cursor-pointer">
+                <Select.Trigger class="cursor-pointer h-10!">
                     <SortIcon />
                 </Select.Trigger>
                 <Select.Content>
@@ -216,76 +251,72 @@
                 </Select.Content>
             </Select.Root>
         </div>
-        <div class="grid gap-1.5">
+        <div class="flex flex-col gap-1.5">
             <Label for="tipo_ferramenta" class="pl-1.5 text-foreground"
                 >Tipos:</Label
             >
-            <InputGroup.Root>
-                <Select.Root
-                    bind:value={selected_tipos_ferramentas}
-                    type="multiple"
-                    name="tipo_ferramenta"
-                    disabled={tipos_ferramentas.length === 0}
-                    allowDeselect={true}
-                    onValueChange={() => {
-                        page.url.searchParams.set(
-                            "tipos",
-                            selected_tipos_ferramentas.join(","),
-                        );
-                        goto(page.url, {
-                            replaceState: true,
-                            noScroll: true,
-                            keepFocus: true,
-                        });
-                    }}
+            <Select.Root
+                bind:value={selected_tipos_ferramentas}
+                type="multiple"
+                name="tipo_ferramenta"
+                disabled={tipos_ferramentas.length === 0}
+                allowDeselect={true}
+                onValueChange={() => {
+                    page.url.searchParams.set(
+                        "tipos",
+                        selected_tipos_ferramentas.join(","),
+                    );
+                    goto(page.url, {
+                        replaceState: true,
+                        noScroll: true,
+                        keepFocus: true,
+                    });
+                }}
+            >
+                <Select.Trigger
+                    class="w-full field-sizing-fixed cursor-pointer h-10!"
                 >
-                    <Select.Trigger class="w-full cursor-pointer">
-                        <span class="overflow-hidden text-ellipsis"
-                            >{selected_tipos_ferramentas.length > 0
-                                ? join_selected_tipos()
-                                : "Todos os tipos"}</span
-                        >
-                    </Select.Trigger>
-                    <Select.Content class="max-g-[300px] w-full">
-                        <Select.Group>
-                            <Select.GroupHeading>
-                                {#snippet child()}
-                                    <div
-                                        class="flex justify-between px-1.5 items-center"
-                                    >
-                                        <span
-                                            class="text-xs text-muted-foreground"
-                                            >Selecione um ou mais:</span
-                                        >
-                                        <Button
-                                            variant="outline"
-                                            class="cursor-pointer"
-                                            size="xs"
-                                            onclick={() =>
-                                                (selected_tipos_ferramentas =
-                                                    [])}
-                                        >
-                                            <XIcon /> Limpar
-                                        </Button>
-                                    </div>
-                                {/snippet}
-                            </Select.GroupHeading>
-                            {#each tipos_ferramentas as tipo (tipo.id)}
-                                <Select.Item
-                                    value={tipo.id}
-                                    label={tipo.nome}
-                                    class="cursor-pointer hover:bg-accent"
-                                    >{tipo.nome}</Select.Item
+                    <span class="overflow-hidden text-ellipsis"
+                        >{join_selected_tipos()}</span
+                    >
+                </Select.Trigger>
+                <Select.Content class="max-g-[300px] w-full">
+                    <Select.Group>
+                        <Select.GroupHeading>
+                            {#snippet child()}
+                                <div
+                                    class="flex justify-between px-1.5 items-center"
                                 >
-                            {/each}
-                        </Select.Group>
-                    </Select.Content>
-                </Select.Root>
-            </InputGroup.Root>
+                                    <span class="text-xs text-muted-foreground"
+                                        >Selecione um ou mais:</span
+                                    >
+                                    <Button
+                                        variant="outline"
+                                        class="cursor-pointer"
+                                        size="xs"
+                                        onclick={() =>
+                                            (selected_tipos_ferramentas = [])}
+                                    >
+                                        <XIcon /> Limpar
+                                    </Button>
+                                </div>
+                            {/snippet}
+                        </Select.GroupHeading>
+                        {#each tipos_ferramentas as tipo (tipo.id)}
+                            <Select.Item
+                                value={tipo.id}
+                                label={tipo.nome}
+                                class="cursor-pointer hover:bg-accent"
+                                >{tipo.nome}</Select.Item
+                            >
+                        {/each}
+                    </Select.Group>
+                </Select.Content>
+            </Select.Root>
         </div>
-    </div>
+    </aside>
 
-    <div class="h-screen overflow-auto flex-1">
+    <main class="flex-1">
         <Virtualizer
             bind:this={virtualizer}
             data={ferramentas_cache.items}
@@ -306,11 +337,13 @@
         {#if is_loading}
             <InsumoCardSkeleton />
         {/if}
-    </div>
+    </main>
 </div>
 
 <style>
     :global(body) {
-        overflow: hidden;
+        margin: 0;
+        padding: 0;
+        overflow-y: auto;
     }
 </style>
