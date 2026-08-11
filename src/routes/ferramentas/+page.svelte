@@ -1,6 +1,6 @@
 <script lang="ts">
     import InsumoCard from "$lib/components/insumo_card.svelte";
-    import { Virtualizer, type VirtualizerHandle } from "virtua/svelte";
+    import { WindowVirtualizer } from "virtua/svelte";
     import { ferramentas_cache } from "./cache.svelte";
     import { onMount } from "svelte";
     import { page } from "$app/state";
@@ -31,7 +31,6 @@
         page.url.searchParams.get("sort") || "COD_AZ",
     );
 
-    let virtualizer: VirtualizerHandle;
     let search_input = $state<HTMLInputElement | null>(null);
 
     const load_data = async () => {
@@ -67,9 +66,9 @@
 
     const calculate_load_bounds = async () => {
         // Requisitar mais dados apenas se o último item da list estiver visível:
-        const vp_size = virtualizer.getViewportSize();
-        const scroll_offset = virtualizer.getScrollOffset();
-        const scroll_size = virtualizer.getScrollSize();
+        const vp_size = window.innerHeight;
+        const scroll_offset = window.scrollY;
+        const scroll_size = document.documentElement.scrollHeight;
         const load_threshold = 300;
 
         if (scroll_offset + vp_size < scroll_size - load_threshold) return;
@@ -79,7 +78,7 @@
 
     export const snapshot = {
         capture: () => {
-            return virtualizer.getScrollOffset();
+            return window.scrollY;
         },
         restore: (value: number) => {
             restored_scroll = value;
@@ -98,13 +97,15 @@
     });
 
     $effect(() => {
-        if (virtualizer && restored_scroll !== null) {
-            tick().then(() => {
-                virtualizer.scrollTo(restored_scroll!);
-                console.log("Scrolled: ", restored_scroll);
+        if (restored_scroll == null) return;
+
+        // FIXME: Window scrolling again after this, resulting in incorrect viewport positioning
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                window.scrollTo(0, restored_scroll!);
                 restored_scroll = null;
             });
-        }
+        });
     });
 
     $effect(() => {
@@ -168,11 +169,9 @@
     <title>Ferramentas</title>
 </svelte:head>
 
-<svelte:window bind:scrollY={y} />
-
-<div class="flex gap-10 md:max-w-332 md:mx-auto">
+<div class="flex flex-wrap gap-10 md:max-w-332 md:mx-auto">
     <aside
-        class="flex flex-col w-full h-fit shrink-0 gap-2 lg:w-90 md:gap-6 bg-accent p-2 md:p-6 rounded-lg md:mt-10"
+        class="flex flex-col w-full h-fit shrink-0 gap-2 lg:w-90 md:gap-6 bg-accent p-2 md:p-6 lg:rounded-lg lg:sticky lg:top-20"
     >
         <h1 class="text-lg font-bold">Ferramentas</h1>
         <div class="flex gap-2">
@@ -317,8 +316,7 @@
     </aside>
 
     <main class="flex-1">
-        <Virtualizer
-            bind:this={virtualizer}
+        <WindowVirtualizer
             data={ferramentas_cache.items}
             getKey={(item, i) => `${item.cod_interno}${i}`}
             onscroll={calculate_load_bounds}
@@ -332,7 +330,7 @@
                     ferramenta={true}
                 />
             {/snippet}
-        </Virtualizer>
+        </WindowVirtualizer>
 
         {#if is_loading}
             <InsumoCardSkeleton />
