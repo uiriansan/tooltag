@@ -3,13 +3,9 @@
     import type { Insumo } from "$lib/types";
     import QrScanner from "qr-scanner";
     import InsumoCard from "$lib/components/insumo_card.svelte";
-    import Close from "~icons/fluent/add-24-regular";
-    import FlashOn from "~icons/fluent/flash-24-filled";
-    import FlashOff from "~icons/fluent/flash-off-24-filled";
-    import CameraSwitch from "~icons/fluent/camera-switch-24-filled";
     import Button from "$lib/components/button.svelte";
-    import ArrowLeft from "~icons/fluent/arrow-left-16-filled";
     import { goto } from "$app/navigation";
+    import { is_ferramenta, is_insumo } from "$lib/utils";
 
     let qr_scanner: QrScanner;
     let video_el: HTMLVideoElement;
@@ -108,10 +104,7 @@
     const check_result = async (result: QrScanner.ScanResult) => {
         if (insumo || !should_scan) return;
 
-        if (
-            /^[A-Z][0-9]{3}$/.test(result.data.trim()) ||
-            /^[0-9]{6}$/.test(result.data.trim())
-        ) {
+        if (is_ferramenta(result.data) || is_insumo(result.data)) {
             const response = await fetch(`/api/insumos/${result.data.trim()}`);
             const insumo_data = await response.json();
 

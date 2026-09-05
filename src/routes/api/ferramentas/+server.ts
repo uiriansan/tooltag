@@ -14,6 +14,8 @@ const parse_sort_ferramentas = (val_str: string | null): SortFerramentas => {
 };
 
 export const GET: RequestHandler = async ({ url }) => {
+  logger.warn("A");
+
   const offset = Number(url.searchParams.get("offset")) || 0;
   const limit = Number(url.searchParams.get("limit")) || 50;
 
@@ -46,7 +48,8 @@ export const GET: RequestHandler = async ({ url }) => {
   return json({
     offset,
     limit,
-    items: ferramentas,
+    count: ferramentas.count,
+    items: ferramentas.items,
     headers: {
       "Content-Type": "application/json",
     },

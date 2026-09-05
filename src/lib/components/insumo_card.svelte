@@ -8,6 +8,7 @@
         obs: string | null;
         ferramenta?: boolean;
         class?: ClassValue;
+        on_click?: () => void;
     }
 
     let {
@@ -17,12 +18,14 @@
         obs,
         ferramenta,
         class: className = "",
+        on_click,
     }: Props = $props();
 </script>
 
 <a
     href={ferramenta ? `ferramentas/${cod}` : `insumos/${cod}`}
     class={`flex w-full items-start gap-3 bg-transparent p-5 transition-colors duration-200 hover:bg-neutral-primary-medium border border-transparent hover:border-brand rounded-base shadow-xs flex-row ${className}`}
+    onclick={on_click}
 >
     <div
         class="aspect-square rounded-base w-16 md:w-30 shrink-0 overflow-hidden bg-brand-softer"

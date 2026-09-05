@@ -36,6 +36,10 @@ export const usuarios = sqliteTable(
   ],
 );
 
+export const sessoes = sqliteTable("Sessoes", {
+  id: text("id").primaryKey(),
+});
+
 // CREATE TABLE IF NOT EXISTS CategoriasInsumos (
 export const categorias_insumos = sqliteTable("CategoriasInsumos", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -79,7 +83,8 @@ export const insumos = sqliteTable(
     obsoleto: integer("obsoleto", { mode: "boolean" }).notNull().default(false),
     obsoleto_substituto: integer("obsoleto_substituto").references(
       (): AnySQLiteColumn => insumos.id,
-    ),
+    ), // TODO: REMOVE
+    versao: integer("versao").notNull().default(1),
   },
   (t) => [
     check(
@@ -122,7 +127,8 @@ export const ferramentas = sqliteTable(
     obsoleto: integer("obsoleto", { mode: "boolean" }).notNull().default(false),
     obsoleto_substituto: integer("obsoleto_substituto").references(
       (): AnySQLiteColumn => ferramentas.id,
-    ),
+    ), // TODO: REMOVE
+    versao: integer("versao").notNull().default(1),
   },
   (t) => [
     check(

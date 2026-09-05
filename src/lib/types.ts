@@ -1,3 +1,10 @@
+export interface GenericData {
+  id: number;
+  nome: string;
+}
+
+export interface InsumoCardData {}
+
 export interface Insumo {
   id: number;
   cod_frabricacao: string | null;
@@ -19,11 +26,28 @@ export interface Insumo {
   completo: boolean;
 }
 
+export interface Maquina {
+  id: number;
+  nome: string;
+  celula: GenericData;
+}
+
+export interface FerramentaCardData {
+  cod_interno: string;
+  nome: string;
+  observacoes: string | null;
+  foto_path: string;
+  tipo_id: number | null;
+  completo: boolean;
+  obsoleto: boolean;
+  versao_last: number;
+  maquinas: Maquina[];
+  insumos: InsumoCardData[];
+}
+
 export enum SortFerramentas {
   COD_AZ = "COD_AZ",
   COD_ZA = "COD_ZA",
-  DATA_ADD_NEW = "DATA_ADD_NEW",
-  DATA_ADD_OLD = "DATA_ADD_OLD",
   DATA_UPD_NEW = "DATA_UPD_NEW",
   DATA_UPD_OLD = "DATA_UPD_OLD",
 }

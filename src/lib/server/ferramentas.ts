@@ -17,41 +17,38 @@ export const get_ferramentas_filter = async (
   obsoleto: boolean,
   query: string | null,
 ) => {
-  let data = db
-    .select({
-      cod_interno: ferramentas.cod_interno,
-      nome: ferramentas.nome,
-      observacoes: ferramentas.observacoes,
-      foto_path: sql`IFNULL(${ferramentas.foto_path}, ${env.DATA_PATH} || '/uploads/ferramenta.png')`,
-    })
-    .from(ferramentas)
-    .offset(offset)
-    .limit(limit)
-    .$dynamic();
+  const filter_conditions = [];
 
   if (query) {
-    data = data.where(
+    filter_conditions.push(
       or(
         like(ferramentas.cod_interno, `%${query}%`),
         like(ferramentas.nome, `%${query}%`),
-        eq(ferramentas.cod_fabricacao, `%${query}%`),
+        like(ferramentas.observacoes, `%${query}%`),
+        eq(ferramentas.cod_fabricacao, query),
       ),
     );
   }
 
+  const [count_res] = await db
+    .select({ total: count() })
+    .from(ferramentas)
+    .where(filter_conditions.length > 0 ? or(...filter_conditions) : undefined);
+  const total_count = count_res?.total ?? 0;
+
+  if (total_count === 0)
+    return {
+      count: 0,
+      items: [],
+    };
+
   let sort_method = null;
   switch (sort) {
-    case SortFerramentas.DATA_ADD_NEW:
-      sort_method = asc(ferramentas.adicionado_em);
-      break;
-    case SortFerramentas.DATA_ADD_OLD:
-      sort_method = desc(ferramentas.adicionado_em);
-      break;
     case SortFerramentas.DATA_UPD_NEW:
-      sort_method = asc(ferramentas.atualizado_em);
+      sort_method = desc(ferramentas.atualizado_em);
       break;
     case SortFerramentas.DATA_UPD_OLD:
-      sort_method = desc(ferramentas.atualizado_em);
+      sort_method = asc(ferramentas.atualizado_em);
       break;
     case SortFerramentas.COD_ZA:
       sort_method = desc(ferramentas.cod_interno);
@@ -60,9 +57,23 @@ export const get_ferramentas_filter = async (
       sort_method = asc(ferramentas.cod_interno);
   }
 
-  data = data.orderBy(sort_method);
+  const items = await db
+    .select({
+      cod_interno: ferramentas.cod_interno,
+      nome: ferramentas.nome,
+      observacoes: ferramentas.observacoes,
+      foto_path: sql`IFNULL(${ferramentas.foto_path}, ${env.DATA_PATH} || '/uploads/ferramenta.png')`,
+    })
+    .from(ferramentas)
+    .where(filter_conditions.length > 0 ? or(...filter_conditions) : undefined)
+    .orderBy(sort_method)
+    .offset(offset)
+    .limit(limit);
 
-  return await data;
+  return {
+    items,
+    count: total_count,
+  };
 };
 
 export const get_tipos_ferramentas = async () => {
