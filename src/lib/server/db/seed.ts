@@ -5,6 +5,7 @@
 
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
+import { eq } from "drizzle-orm";
 import { seed } from "drizzle-seed";
 import * as schema from "./schema";
 
@@ -18,6 +19,12 @@ const db = drizzle(sqlite);
 
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randomFloat(min: number, max: number, decimals = 2): number {
+  const val = Math.random() * (max - min) + min;
+  const factor = 10 ** decimals;
+  return Math.round(val * factor) / factor;
 }
 
 function pick<T>(arr: T[]): T {
@@ -75,9 +82,95 @@ function insertInBatches<T extends Record<string, unknown>>(
   });
 }
 
+function fotoPathPadrao(): string {
+  return `${process.env.DATA_PATH?.replace("./", "/")}/uploads/teste.png`;
+}
+
+/** Quantas versões (cadastros) um item terá: a grande maioria tem só a 1. */
+function decidirNumeroVersoes(): number {
+  return weightedPick<number>([
+    [0.9, 1],
+    [0.08, 2],
+    [0.02, 3],
+  ]);
+}
+
+/**
+ * Decide, para um item com `numVersoes` versões, quais delas ficam `obsoleto`.
+ * Retorna um array de flags indexado por (versao - 1).
+ *
+ * Regra geral: só a versão mais recente fica ativa. Casos raros previstos:
+ *  - mais de uma versão ativa ao mesmo tempo (uso incomum, mas válido);
+ *  - item descontinuado por completo, nem a última versão está ativa.
+ */
+function decidirObsolescencia(numVersoes: number): boolean[] {
+  if (numVersoes === 1) {
+    return [chance(0.08)]; // item avulso, sem histórico de revisão, raramente obsoleto
+  }
+
+  const flags = new Array(numVersoes).fill(true);
+  flags[numVersoes - 1] = false; // versão mais recente ativa, por padrão
+
+  if (chance(0.1)) {
+    // caso raro: uma versão anterior também continua ativa
+    const idxExtra = randomInt(0, numVersoes - 2);
+    flags[idxExtra] = false;
+  }
+
+  if (chance(0.03)) {
+    // caso bem raro: item descontinuado por completo
+    flags[numVersoes - 1] = true;
+  }
+
+  return flags;
+}
+
 // ---------------------------------------------------------------------------
 // Listas curadas (para dar variedade sem depender só de lorem ipsum)
 // ---------------------------------------------------------------------------
+
+const LOREM_PALAVRAS = [
+  "lorem",
+  "ipsum",
+  "dolor",
+  "sit",
+  "amet",
+  "consectetur",
+  "adipiscing",
+  "elit",
+  "sed",
+  "do",
+  "eiusmod",
+  "tempor",
+  "incididunt",
+  "ut",
+  "labore",
+  "et",
+  "dolore",
+  "magna",
+  "aliqua",
+  "enim",
+  "ad",
+  "minim",
+  "veniam",
+  "quis",
+  "nostrud",
+  "exercitation",
+  "ullamco",
+  "laboris",
+  "nisi",
+  "aliquip",
+];
+
+function loremFrase(minPalavras: number, maxPalavras: number): string {
+  const n = randomInt(minPalavras, maxPalavras);
+  const frase = Array.from({ length: n }, () => pick(LOREM_PALAVRAS)).join(" ");
+  return frase.charAt(0).toUpperCase() + frase.slice(1) + ".";
+}
+
+function codigoFabricacao(): string {
+  return `FAB-${String(randomInt(0, 99999)).padStart(5, "0")}`;
+}
 
 const NOMES = [
   "Carlos",
@@ -211,13 +304,14 @@ const OBSERVACOES_OCORRENCIA = [
 ];
 
 async function main() {
-  // -------------------------------------------------------------------------
-  // Fase 1 — Usuário gestor (o admin de id 1 já existe no banco)
-  // -------------------------------------------------------------------------
   if (process.env.NODE_ENV !== "development") {
     console.error("Ignorando seed em ambiente de produção.");
     return 1;
   }
+
+  // -------------------------------------------------------------------------
+  // Fase 1 — Usuário gestor (o admin de id 1 já existe no banco)
+  // -------------------------------------------------------------------------
 
   db.insert(schema.usuarios)
     .values({
@@ -305,141 +399,158 @@ async function main() {
     .map((r: { id: number }) => r.id);
 
   // -------------------------------------------------------------------------
-  // Fase 3 — Insumos e Ferramentas (drizzle-seed)
+  // Fase 3 — Insumos e Ferramentas (MANUAL, não mais drizzle-seed)
   // -------------------------------------------------------------------------
+  // `versao` exige que várias linhas compartilhem o mesmo `cod_interno` (uma
+  // por revisão do cadastro), e o `phoneNumber` do drizzle-seed é sempre
+  // único — não tem como gerar o mesmo código de propósito para duas linhas.
+  // Por isso essa fase virou geração manual: cada "item" (cod_interno) recebe
+  // de 1 a 3 versões, e cada versão > 1 sempre difere de alguma forma da
+  // anterior (garantido, não sorteado).
 
-  const TOTAL_INSUMOS = 1500;
+  const TOTAL_INSUMOS = 1500; // itens distintos, não linhas — cada um pode gerar mais de uma linha (versão)
   const TOTAL_FERRAMENTAS = 1000;
 
-  await seed(db, { insumos: schema.insumos }).refine((f) => ({
-    insumos: {
-      count: TOTAL_INSUMOS,
-      columns: {
-        // "00" + 4 dígitos, ex.: 001234. `phoneNumber` já é sempre único por padrão
-        // (não aceita a opção `isUnique`), e 10.000 combinações são de sobra para 1.500 linhas.
-        cod_interno: f.phoneNumber({ template: "00####" }),
-        cod_fabricacao: f.weightedRandom([
-          { weight: 0.75, value: f.phoneNumber({ template: "FAB-#####" }) },
-          { weight: 0.25, value: f.default({ defaultValue: null }) },
-        ]),
-        nome: f.loremIpsum({ sentencesCount: 1 }),
-        observacoes: f.weightedRandom([
-          { weight: 0.4, value: f.loremIpsum({ sentencesCount: 2 }) },
-          { weight: 0.6, value: f.default({ defaultValue: null }) },
-        ]),
-        foto_path: f.weightedRandom([
-          {
-            weight: 0.5,
-            value: f.default({
-              defaultValue: `${process.env.DATA_PATH?.replace("./", "/")}/uploads/teste.png`,
-            }),
-          },
-          { weight: 0.5, value: f.default({ defaultValue: null }) },
-        ]),
-        material: f.weightedRandom([
-          { weight: 0.8, value: f.valuesFromArray({ values: MATERIAIS }) },
-          { weight: 0.2, value: f.default({ defaultValue: null }) },
-        ]),
-        categoria_id: f.weightedRandom([
-          { weight: 0.85, value: f.valuesFromArray({ values: categoriaIds }) },
-          { weight: 0.15, value: f.default({ defaultValue: null }) },
-        ]),
-        adicionado_em: f.date({ minDate: "2022-01-01", maxDate: "2026-07-01" }),
-        adicionado_por: f.valuesFromArray({ values: usuarioIds }),
-        atualizado_em: f.date({ minDate: "2025-01-01", maxDate: "2026-07-26" }),
-        completo: f.weightedRandom([
-          { weight: 0.85, value: f.default({ defaultValue: true }) },
-          { weight: 0.15, value: f.default({ defaultValue: false }) },
-        ]),
-        obsoleto: f.weightedRandom([
-          { weight: 0.92, value: f.default({ defaultValue: false }) },
-          { weight: 0.08, value: f.default({ defaultValue: true }) },
-        ]),
-        obsoleto_substituto: f.default({ defaultValue: null }),
-      },
-    },
-  }));
+  const insumosRows: (typeof schema.insumos.$inferInsert)[] = [];
 
-  await seed(db, { ferramentas: schema.ferramentas }).refine((f) => ({
-    ferramentas: {
-      count: TOTAL_FERRAMENTAS,
-      columns: {
-        // template exigido: "H-###" (1.000 combinações para 1.000 linhas — cabe certinho).
-        // `phoneNumber` já é sempre único por padrão, não aceita `isUnique`.
-        cod_interno: f.phoneNumber({ template: "H###" }),
-        cod_fabricacao: f.weightedRandom([
-          { weight: 0.7, value: f.phoneNumber({ template: "FAB-#####" }) },
-          { weight: 0.3, value: f.default({ defaultValue: null }) },
-        ]),
-        nome: f.loremIpsum({ sentencesCount: 1 }),
-        observacoes: f.weightedRandom([
-          { weight: 0.4, value: f.loremIpsum({ sentencesCount: 2 }) },
-          { weight: 0.6, value: f.default({ defaultValue: null }) },
-        ]),
-        foto_path: f.weightedRandom([
-          {
-            weight: 0.5,
-            value: f.default({
-              defaultValue: `${process.env.DATA_PATH?.replace("./", "/")}/uploads/teste.png`,
-            }),
-          },
-          { weight: 0.5, value: f.default({ defaultValue: null }) },
-        ]),
-        material: f.weightedRandom([
-          { weight: 0.8, value: f.valuesFromArray({ values: MATERIAIS }) },
-          { weight: 0.2, value: f.default({ defaultValue: null }) },
-        ]),
-        tipo_id: f.weightedRandom([
-          {
-            weight: 0.85,
-            value: f.valuesFromArray({ values: tipoFerramentaIds }),
-          },
-          { weight: 0.15, value: f.default({ defaultValue: null }) },
-        ]),
-        altura_min: f.weightedRandom([
-          {
-            weight: 0.7,
-            value: f.number({ minValue: 1, maxValue: 50, precision: 10 }),
-          },
-          { weight: 0.3, value: f.default({ defaultValue: null }) },
-        ]),
-        altura_max: f.weightedRandom([
-          {
-            weight: 0.7,
-            value: f.number({ minValue: 50, maxValue: 200, precision: 10 }),
-          },
-          { weight: 0.3, value: f.default({ defaultValue: null }) },
-        ]),
-        rpm: f.weightedRandom([
-          {
-            weight: 0.75,
-            value: f.number({ minValue: 500, maxValue: 24000, precision: 1 }),
-          },
-          { weight: 0.25, value: f.default({ defaultValue: null }) },
-        ]),
-        avanco_min: f.weightedRandom([
-          {
-            weight: 0.75,
-            value: f.number({ minValue: 0.01, maxValue: 5, precision: 100 }),
-          },
-          { weight: 0.25, value: f.default({ defaultValue: null }) },
-        ]),
-        adicionado_em: f.date({ minDate: "2022-01-01", maxDate: "2026-07-01" }),
-        adicionado_por: f.valuesFromArray({ values: usuarioIds }),
-        atualizado_em: f.date({ minDate: "2025-01-01", maxDate: "2026-07-26" }),
-        completo: f.weightedRandom([
-          { weight: 0.85, value: f.default({ defaultValue: true }) },
-          { weight: 0.15, value: f.default({ defaultValue: false }) },
-        ]),
-        obsoleto: f.weightedRandom([
-          { weight: 0.92, value: f.default({ defaultValue: false }) },
-          { weight: 0.08, value: f.default({ defaultValue: true }) },
-        ]),
-        obsoleto_substituto: f.default({ defaultValue: null }),
-      },
-    },
-  }));
+  for (let itemIndex = 1; itemIndex <= TOTAL_INSUMOS; itemIndex++) {
+    const codInterno = `00${String(itemIndex).padStart(4, "0")}`; // ex.: 001234
 
+    const numVersoes = decidirNumeroVersoes();
+    const obsolescencias = decidirObsolescencia(numVersoes);
+
+    // Perfil-base do item, compartilhado entre as versões (ponto de partida).
+    const base = {
+      nome: loremFrase(3, 8),
+      material: weightedPick<string | null>([
+        [0.8, pick(MATERIAIS)],
+        [0.2, null],
+      ]),
+      categoriaId: weightedPick<number | null>([
+        [0.85, pick(categoriaIds)],
+        [0.15, null],
+      ]),
+      codFabricacao: chance(0.75) ? codigoFabricacao() : null,
+      temFoto: chance(0.5),
+    };
+    const adicionadoPor = pick(usuarioIds);
+
+    let dataVersao = daysAgo(randomInt(180, 1460)); // entre ~6 meses e 4 anos atrás
+
+    for (let v = 1; v <= numVersoes; v++) {
+      if (v > 1) {
+        const proxima =
+          dataVersao.getTime() + randomInt(30, 365) * 24 * 60 * 60 * 1000;
+        dataVersao = new Date(
+          Math.min(proxima, Date.now() - 24 * 60 * 60 * 1000),
+        );
+      }
+
+      const ehRevisao = v > 1;
+
+      insumosRows.push({
+        cod_interno: codInterno,
+        cod_fabricacao: base.codFabricacao,
+        // a partir da v2, garante (de forma determinística) que algo mudou
+        nome: ehRevisao ? `${base.nome} (revisão ${v})` : base.nome,
+        observacoes: ehRevisao
+          ? `Revisão ${v} do cadastro. ${loremFrase(4, 10)}`
+          : chance(0.4)
+            ? loremFrase(6, 16)
+            : null,
+        foto_path: base.temFoto ? fotoPathPadrao() : null,
+        material: ehRevisao && chance(0.4) ? pick(MATERIAIS) : base.material,
+        categoria_id: base.categoriaId,
+        adicionado_em: dataVersao,
+        adicionado_por: adicionadoPor,
+        atualizado_em: dataVersao,
+        completo: chance(0.85),
+        obsoleto: obsolescencias[v - 1],
+        versao: v,
+      });
+    }
+  }
+
+  insertInBatches(schema.insumos, insumosRows, 200);
+
+  const ferramentasRows: (typeof schema.ferramentas.$inferInsert)[] = [];
+
+  for (let itemIndex = 1; itemIndex <= TOTAL_FERRAMENTAS; itemIndex++) {
+    const codInterno = `H${String(itemIndex % 1000).padStart(3, "0")}`; // ex.: H042
+
+    const numVersoes = decidirNumeroVersoes();
+    const obsolescencias = decidirObsolescencia(numVersoes);
+
+    let alturaMin: number | null = chance(0.7) ? randomFloat(1, 50, 1) : null;
+    let alturaMax: number | null = chance(0.7) ? randomFloat(50, 200, 1) : null;
+    if (alturaMin !== null && alturaMax !== null && alturaMin > alturaMax) {
+      [alturaMin, alturaMax] = [alturaMax, alturaMin];
+    }
+
+    const base = {
+      nome: loremFrase(3, 8),
+      material: weightedPick<string | null>([
+        [0.8, pick(MATERIAIS)],
+        [0.2, null],
+      ]),
+      tipoId: weightedPick<number | null>([
+        [0.85, pick(tipoFerramentaIds)],
+        [0.15, null],
+      ]),
+      codFabricacao: chance(0.7) ? codigoFabricacao() : null,
+      temFoto: chance(0.5),
+      alturaMin,
+      alturaMax,
+      rpm: chance(0.75) ? randomFloat(500, 24000, 0) : null,
+      avancoMin: chance(0.75) ? randomFloat(0.01, 5, 2) : null,
+    };
+    const adicionadoPor = pick(usuarioIds);
+
+    let dataVersao = daysAgo(randomInt(180, 1460));
+
+    for (let v = 1; v <= numVersoes; v++) {
+      if (v > 1) {
+        const proxima =
+          dataVersao.getTime() + randomInt(30, 365) * 24 * 60 * 60 * 1000;
+        dataVersao = new Date(
+          Math.min(proxima, Date.now() - 24 * 60 * 60 * 1000),
+        );
+      }
+
+      const ehRevisao = v > 1;
+
+      ferramentasRows.push({
+        cod_interno: codInterno,
+        cod_fabricacao: base.codFabricacao,
+        nome: ehRevisao ? `${base.nome} (revisão ${v})` : base.nome,
+        observacoes: ehRevisao
+          ? `Revisão ${v} do cadastro. ${loremFrase(4, 10)}`
+          : chance(0.4)
+            ? loremFrase(6, 16)
+            : null,
+        foto_path: base.temFoto ? fotoPathPadrao() : null,
+        material: ehRevisao && chance(0.4) ? pick(MATERIAIS) : base.material,
+        tipo_id: base.tipoId,
+        // numa revisão, às vezes o próprio ajuste técnico é o que muda
+        altura_min:
+          ehRevisao && chance(0.3) ? randomFloat(1, 50, 1) : base.alturaMin,
+        altura_max:
+          ehRevisao && chance(0.3) ? randomFloat(50, 200, 1) : base.alturaMax,
+        rpm: base.rpm,
+        avanco_min: base.avancoMin,
+        adicionado_em: dataVersao,
+        adicionado_por: adicionadoPor,
+        atualizado_em: dataVersao,
+        completo: chance(0.85),
+        obsoleto: obsolescencias[v - 1],
+        versao: v,
+      });
+    }
+  }
+
+  insertInBatches(schema.ferramentas, ferramentasRows, 200);
+
+  // ids de todas as versões (usados no histórico de ocorrências)
   const insumoIds = db
     .select({ id: schema.insumos.id })
     .from(schema.insumos)
@@ -452,45 +563,29 @@ async function main() {
     .all()
     .map((r: { id: number }) => r.id);
 
-  // altura_min/altura_max foram gerados independentes; conserta os casos em que ficaram invertidos.
-  sqlite
-    .prepare(
-      `UPDATE Ferramentas
-       SET altura_min = altura_max, altura_max = altura_min
-       WHERE altura_min IS NOT NULL AND altura_max IS NOT NULL AND altura_min > altura_max`,
-    )
-    .run();
+  // ids só das versões ativas (usados nas associações "atuais": InsumosFerramentas, InsumosMaquinas)
+  const insumoIdsAtivos = db
+    .select({ id: schema.insumos.id })
+    .from(schema.insumos)
+    .where(eq(schema.insumos.obsoleto, false))
+    .all()
+    .map((r: { id: number }) => r.id);
 
-  // obsoleto_substituto: para ~metade dos itens marcados como obsoletos, aponta para outro item ativo.
-  const patchObsolescencia = (
-    table: "Insumos" | "Ferramentas",
-    ids: number[],
-  ) => {
-    const obsoletos = sqlite
-      .prepare(`SELECT id FROM ${table} WHERE obsoleto = 1`)
-      .all() as { id: number }[];
-
-    const stmt = sqlite.prepare(
-      `UPDATE ${table} SET obsoleto_substituto = ? WHERE id = ?`,
-    );
-    db.transaction(() => {
-      for (const { id } of obsoletos) {
-        if (!chance(0.5)) continue;
-        const candidato = pick(ids.filter((otherId) => otherId !== id));
-        stmt.run(candidato, id);
-      }
-    });
-  };
-  patchObsolescencia("Insumos", insumoIds);
-  patchObsolescencia("Ferramentas", ferramentaIds);
+  const ferramentaIdsAtivos = db
+    .select({ id: schema.ferramentas.id })
+    .from(schema.ferramentas)
+    .where(eq(schema.ferramentas.obsoleto, false))
+    .all()
+    .map((r: { id: number }) => r.id);
 
   // -------------------------------------------------------------------------
   // Fase 4 — InsumosFerramentas (manual: nem toda ferramenta tem dependências)
   // -------------------------------------------------------------------------
+  // Usa só versões ativas: essa tabela representa a composição *atual* de cada ferramenta.
 
   const ferramentasComInsumos = pickN(
-    ferramentaIds,
-    Math.round(ferramentaIds.length * 0.55), // ~55% das ferramentas têm insumos associados
+    ferramentaIdsAtivos,
+    Math.round(ferramentaIdsAtivos.length * 0.55), // ~55% das ferramentas ativas têm insumos associados
   );
 
   const paresInsumoFerramenta: { ferramenta_id: number; insumo_id: number }[] =
@@ -508,7 +603,7 @@ async function main() {
       [0.35, randomInt(3, 4)],
       [0.15, randomInt(5, 6)],
     ]);
-    const insumosEscolhidos = pickN(insumoIds, qtdInsumos);
+    const insumosEscolhidos = pickN(insumoIdsAtivos, qtdInsumos);
 
     for (const insumo_id of insumosEscolhidos) {
       insumosFerramentasRows.push({
@@ -528,6 +623,7 @@ async function main() {
   // -------------------------------------------------------------------------
   // Fase 5 — InsumosMaquinas e FerramentasMaquinas (manual)
   // -------------------------------------------------------------------------
+  // Idem: só versões ativas, já que representa o que está de fato em uso nas máquinas hoje.
 
   const insumosMaquinasRows: { maquina_id: number; insumo_id: number }[] = [];
   const ferramentasMaquinasRows: {
@@ -536,10 +632,10 @@ async function main() {
   }[] = [];
 
   for (const maquina_id of maquinaIds) {
-    for (const insumo_id of pickN(insumoIds, randomInt(5, 20))) {
+    for (const insumo_id of pickN(insumoIdsAtivos, randomInt(5, 20))) {
       insumosMaquinasRows.push({ maquina_id, insumo_id });
     }
-    for (const ferramenta_id of pickN(ferramentaIds, randomInt(5, 15))) {
+    for (const ferramenta_id of pickN(ferramentaIdsAtivos, randomInt(5, 15))) {
       ferramentasMaquinasRows.push({ maquina_id, ferramenta_id });
     }
   }
@@ -616,6 +712,9 @@ async function main() {
   // -------------------------------------------------------------------------
   // Fase 7 — InsumosOcorrencias (manual: respeita exclusividade e FK composta)
   // -------------------------------------------------------------------------
+  // Histórico: pode referenciar qualquer versão (inclusive obsoleta hoje), já
+  // que uma ocorrência antiga pode muito bem ter usado uma versão que só
+  // depois foi descontinuada.
 
   const insumosOcorrenciasRows: {
     tipo: number;
@@ -697,8 +796,12 @@ async function main() {
   console.log(`  tipos_ferramentas: ${TIPOS_FERRAMENTAS.length}`);
   console.log(`  celulas: ${CELULAS_NOMES.length}`);
   console.log(`  maquinas: ${maquinaIds.length}`);
-  console.log(`  insumos: ${insumoIds.length}`);
-  console.log(`  ferramentas: ${ferramentaIds.length}`);
+  console.log(
+    `  insumos: ${insumoIds.length} linhas (${TOTAL_INSUMOS} itens distintos)`,
+  );
+  console.log(
+    `  ferramentas: ${ferramentaIds.length} linhas (${TOTAL_FERRAMENTAS} itens distintos)`,
+  );
   console.log(`  insumos_ferramentas: ${insumosFerramentasRows.length}`);
   console.log(`  insumos_maquinas: ${insumosMaquinasRows.length}`);
   console.log(`  ferramentas_maquinas: ${ferramentasMaquinasRows.length}`);

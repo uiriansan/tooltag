@@ -81,17 +81,11 @@ export const insumos = sqliteTable(
       .$onUpdate(() => new Date()),
     completo: integer("completo", { mode: "boolean" }).notNull().default(false), // Se o cadastro do insumo foi ou não finalizado.
     obsoleto: integer("obsoleto", { mode: "boolean" }).notNull().default(false),
-    obsoleto_substituto: integer("obsoleto_substituto").references(
-      (): AnySQLiteColumn => insumos.id,
-    ), // TODO: REMOVE
     versao: integer("versao").notNull().default(1),
   },
   (t) => [
-    check(
-      "insumos_obsoleto_non_recursive_check",
-      sql`${t.id} != ${t.obsoleto_substituto}`,
-    ),
     index("insumos_adicionado_por_idx").on(t.adicionado_por),
+    uniqueIndex("insumos_cod_interno_versao_idx").on(t.cod_interno, t.versao),
   ],
 );
 
@@ -125,17 +119,14 @@ export const ferramentas = sqliteTable(
       .$onUpdate(() => new Date()),
     completo: integer("completo", { mode: "boolean" }).notNull().default(false), // Se o cadastro da ferramenta foi ou não finalizado.
     obsoleto: integer("obsoleto", { mode: "boolean" }).notNull().default(false),
-    obsoleto_substituto: integer("obsoleto_substituto").references(
-      (): AnySQLiteColumn => ferramentas.id,
-    ), // TODO: REMOVE
     versao: integer("versao").notNull().default(1),
   },
   (t) => [
-    check(
-      "ferramentas_obsoleto_non_recursive_check",
-      sql`${t.id} != ${t.obsoleto_substituto}`,
-    ),
     index("ferramentas_adicionado_por_idx").on(t.adicionado_por),
+    uniqueIndex("ferramentas_cod_interno_versao_idx").on(
+      t.cod_interno,
+      t.versao,
+    ),
   ],
 );
 
