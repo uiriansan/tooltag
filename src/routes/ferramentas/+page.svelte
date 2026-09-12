@@ -31,7 +31,8 @@
     let selected_tipos_ferramentas = $state<string[]>(
         (page.url.searchParams.get("tipos") ?? "")
             .split(",")
-            .filter((id) => id.length > 0),
+            .filter((id) => id.length > 0)
+            .map((id) => id.trim()),
     );
     let selected_tipos_ferramentas_at_open: string[] = [];
 
@@ -61,23 +62,23 @@
             .map((t) => t.nome)
             .join(", ");
     });
+    const selected_maquinas_label = $derived.by(() => {
+        return "Todas as máquinas";
+    });
 
     let status_obsoleto = $state<boolean>(
-        Boolean(page.url.searchParams.get("status_obsoleto")),
+        Boolean(page.url.searchParams.get("obsoleto")),
     );
     let status_incompleto = $state<boolean>(
-        Boolean(page.url.searchParams.get("status_incompleto")),
+        Boolean(page.url.searchParams.get("incompleto")),
     );
-    let status_normal = $derived.by<boolean>(() => {
-        let status_val =
-            page.url.searchParams.get("status_normal") !== "1" ? false : true;
+    let enable_status_filters = $derived.by<boolean>(() => {
+        const url_val = page.url.searchParams.get("status");
 
-        const obsoleto_val = untrack(() => status_obsoleto);
-        const incompleto_val = untrack(() => status_incompleto);
-
-        if (!status_val && !obsoleto_val && !incompleto_val) status_val = true;
-
-        return status_val;
+        if (url_val && url_val === "1") {
+            return true;
+        }
+        return false;
     });
 
     let versoes_group = $derived.by<boolean>(() => {
@@ -107,22 +108,22 @@
             params.delete("tipos");
         }
 
-        if (status_normal) {
-            params.set("status_normal", "1");
-        } else {
-            params.set("status_normal", "0");
-        }
-
         if (status_obsoleto) {
-            params.set("status_obsoleto", "1");
+            params.set("obsoleto", "1");
         } else {
-            params.delete("status_obsoleto");
+            params.delete("obsoleto");
         }
 
         if (status_incompleto) {
-            params.set("status_incompleto", "1");
+            params.set("incompleto", "1");
         } else {
-            params.delete("status_incompleto");
+            params.delete("incompleto");
+        }
+
+        if (enable_status_filters) {
+            params.set("status", "1");
+        } else {
+            params.set("status", "0");
         }
 
         if (versoes_group) {
@@ -164,7 +165,7 @@
 
     $effect(() => {
         sort_method;
-        status_normal;
+        enable_status_filters;
         status_obsoleto;
         status_incompleto;
         versoes_group;
@@ -202,6 +203,10 @@
             if (search_query.trim()) params.set("q", search_query.trim());
 
             params.set("sort", sort_method);
+            params.set("status", `${Number(enable_status_filters)}`);
+            params.set("obsoleto", `${Number(status_obsoleto)}`);
+            params.set("incompleto", `${Number(status_incompleto)}`);
+            params.set("versoes_group", `${Number(versoes_group)}`);
 
             if (selected_tipos_ferramentas.length > 0)
                 params.set("tipos", selected_tipos_ferramentas.join(","));
@@ -228,7 +233,7 @@
             if (err instanceof DOMException && err.name === "AbortError")
                 return;
 
-            console.error(`Erro ao carregar mais ferramentas: ${err}`);
+            console.error(`Erro ao carregar ferramentas: ${err}`);
         } finally {
             if (this_request === request_id) {
                 is_loading_more = false;
@@ -299,7 +304,7 @@
                 <InsumoCard
                     cod={ferramenta.cod_interno}
                     nome={ferramenta.nome}
-                    foto={ferramenta.foto_path!}
+                    foto={ferramenta.foto_path}
                     obs={ferramenta.observacoes}
                     ferramenta={true}
                     class={`${clicked_item_index !== null && clicked_item_index === index ? "border-2! border-primary-foreground! bg-accent! rounded-md" : "rounded-md"}`}
@@ -443,21 +448,87 @@
                 </Select.Content>
             </Select.Root>
         </div>
-        <div class="flex flex-col gap-3">
-            <p class="pl-1.5 text-foreground font-medium text-md">Status:</p>
-            <div class="pl-3 flex justify-between gap-2">
-                <input
-                    type="checkbox"
-                    id="status_normal_switch"
-                    class="cursor-pointer w-4"
-                    bind:checked={status_normal}
-                    disabled={!status_obsoleto && !status_incompleto}
-                />
-                <Label
-                    for="status_normal_switch"
-                    class="text-muted-foreground text-sm flex-1 cursor-pointer"
-                    >Normal</Label
+        <div class="flex flex-col gap-1.5">
+            <Label for="tipo_ferramenta" class="pl-1.5 text-foreground text-md"
+                >Máquinas:</Label
+            >
+            <Select.Root
+                bind:value={selected_tipos_ferramentas}
+                type="multiple"
+                name="tipo_ferramenta"
+                disabled={tipos_ferramentas.length === 0}
+                allowDeselect={true}
+                onOpenChange={(opened) => {
+                    if (opened) {
+                        selected_tipos_ferramentas_at_open =
+                            selected_tipos_ferramentas;
+                    } else {
+                        if (
+                            !compare_arrays_equals(
+                                selected_tipos_ferramentas_at_open,
+                                selected_tipos_ferramentas,
+                            )
+                        ) {
+                            apply_filters();
+                        }
+                        selected_tipos_ferramentas_at_open = [];
+                    }
+                }}
+            >
+                <Select.Trigger
+                    class="w-full field-sizing-fixed cursor-pointer h-10!"
                 >
+                    <span class="overflow-hidden text-ellipsis"
+                        >{selected_maquinas_label}</span
+                    >
+                </Select.Trigger>
+                <Select.Content class="max-g-[300px] w-full">
+                    <Select.Group>
+                        <Select.GroupHeading>
+                            {#snippet child()}
+                                <div
+                                    class="flex justify-between px-1.5 items-center"
+                                >
+                                    <span class="text-xs text-muted-foreground"
+                                        >Selecione uma ou mais:</span
+                                    >
+                                    <Button
+                                        variant="outline"
+                                        class="cursor-pointer"
+                                        size="xs"
+                                        onclick={() =>
+                                            (selected_tipos_ferramentas = [])}
+                                    >
+                                        <XIcon /> Limpar
+                                    </Button>
+                                </div>
+                            {/snippet}
+                        </Select.GroupHeading>
+                        {#each tipos_ferramentas as tipo (tipo.id)}
+                            <Select.Item
+                                value={String(tipo.id)}
+                                label={tipo.nome}
+                                class="cursor-pointer hover:bg-accent"
+                                >{tipo.nome}</Select.Item
+                            >
+                        {/each}
+                    </Select.Group>
+                </Select.Content>
+            </Select.Root>
+        </div>
+        <div class="flex flex-col gap-3">
+            <div class="flex justify-between items-center">
+                <label
+                    for="status_switch"
+                    class="flex-1 pl-1.5 text-foreground font-medium text-md"
+                >
+                    Status:
+                </label>
+                <Switch
+                    id="status_switch"
+                    class="cursor-pointer"
+                    bind:checked={enable_status_filters}
+                />
             </div>
             <div class="pl-3 flex justify-between gap-2">
                 <input
@@ -465,11 +536,11 @@
                     id="status_obsoleto_switch"
                     class="cursor-pointer w-4"
                     bind:checked={status_obsoleto}
-                    disabled={!status_normal && !status_incompleto}
+                    disabled={!enable_status_filters}
                 />
                 <Label
                     for="status_obsoleto_switch"
-                    class="text-muted-foreground text-sm flex-1 cursor-pointer"
+                    class={`text-muted-foreground text-sm flex-1 ${enable_status_filters ? "cursor-pointer" : "text-muted-foreground/50"}`}
                     >Obsoleto</Label
                 >
             </div>
@@ -479,11 +550,11 @@
                     id="status_incompleto_switch"
                     class="cursor-pointer w-4"
                     bind:checked={status_incompleto}
-                    disabled={!status_normal && !status_obsoleto}
+                    disabled={!enable_status_filters}
                 />
                 <Label
                     for="status_incompleto_switch"
-                    class="text-muted-foreground text-sm flex-1 cursor-pointer"
+                    class={`text-muted-foreground text-sm flex-1 ${enable_status_filters ? "cursor-pointer" : "text-muted-foreground/50"}`}
                     >Cadastro incompleto</Label
                 >
             </div>

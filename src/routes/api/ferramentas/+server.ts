@@ -14,8 +14,6 @@ const parse_sort_ferramentas = (val_str: string | null): SortFerramentas => {
 };
 
 export const GET: RequestHandler = async ({ url }) => {
-  logger.warn("A");
-
   const offset = Number(url.searchParams.get("offset")) || 0;
   const limit = Number(url.searchParams.get("limit")) || 50;
 
@@ -23,21 +21,35 @@ export const GET: RequestHandler = async ({ url }) => {
     url.searchParams.get("sort"),
   );
   const search_query = url.searchParams.get("q");
-  const tipo_id = Number(url.searchParams.get("tipo"));
-  const completo = Boolean(url.searchParams.get("completo"));
-  const obsoleto = Boolean(url.searchParams.get("obsoleto"));
+
+  const tipos_url = url.searchParams.get("tipos");
+  const tipos_ids =
+    tipos_url === null ? [] : tipos_url.split(",").map((id) => Number(id));
+
+  const enable_status_filters =
+    url.searchParams.get("status") === "1" ? true : false;
+  const incompleto = url.searchParams.get("incompleto") === "1" ? true : false;
+  const obsoleto = url.searchParams.get("obsoleto") === "1" ? true : false;
+
+  const versoes_group_url = url.searchParams.get("versoes_group");
+  const versoes_group =
+    versoes_group_url === null
+      ? true
+      : versoes_group_url !== "1"
+        ? false
+        : true;
 
   const ferramentas = await get_ferramentas_filter(
     sort,
     offset,
     limit,
+    tipos_ids,
     null,
-    null,
-    tipo_id,
-    NaN,
-    completo,
+    enable_status_filters,
+    incompleto,
     obsoleto,
     search_query,
+    versoes_group,
   );
 
   // TODO: REMOVE!

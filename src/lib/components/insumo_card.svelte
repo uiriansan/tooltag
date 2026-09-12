@@ -1,8 +1,10 @@
 <script lang="ts">
     import type { ClassValue } from "svelte/elements";
+    import ferramenta_foto from "$lib/assets/ferramenta.png";
+    import insumo_foto from "$lib/assets/insumo.png";
 
     interface Props {
-        foto: string;
+        foto: string | null;
         nome: string;
         cod: string;
         obs: string | null;
@@ -20,6 +22,17 @@
         class: className = "",
         on_click,
     }: Props = $props();
+
+    let foto_src = $derived.by(() => {
+        if (foto === null) {
+            if (ferramenta) {
+                return ferramenta_foto;
+            } else {
+                return insumo_foto;
+            }
+        }
+        return foto;
+    });
 </script>
 
 <a
@@ -31,7 +44,7 @@
         class="aspect-square rounded-base w-16 md:w-30 shrink-0 overflow-hidden bg-brand-softer"
     >
         <img
-            src={foto}
+            src={foto_src}
             alt=""
             class="rounded-base object-cover h-full w-full"
         />
