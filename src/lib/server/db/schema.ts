@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import {
   sqliteTable,
   primaryKey,
@@ -61,6 +61,7 @@ export const insumos = sqliteTable(
     cod_interno: text("cod_interno").notNull(),
     nome: text("nome").notNull(),
     observacoes: text("observacoes"),
+    busca_str: text("busca_str").notNull(),
     foto_path: text("foto_path"),
     material: text("material"), // material do insumo
     categoria_id: integer("categoria_id").references(
@@ -98,6 +99,7 @@ export const ferramentas = sqliteTable(
     cod_interno: text("cod_interno").notNull(),
     nome: text("nome").notNull(),
     observacoes: text("observacoes"),
+    busca_str: text("busca_str").notNull(),
     foto_path: text("foto_path"),
     material: text("material"), // Material para qual a ferramenta é destinada
     tipo_id: integer("tipo_id").references(() => tipos_ferramentas.id, {
@@ -275,6 +277,8 @@ export const insumos_ocorrencias = sqliteTable(
     ),
 
     index("ocorrencia_insumo_ocorrencia_idx").on(t.ocorrencia_id),
+    index("ocorrencia_insumo_ferramenta_idx").on(t.ferramenta_id),
+    index("ocorrencia_insumo_insumo_idx").on(t.insumo_id),
 
     uniqueIndex("insumos_ocorrencias_insumo_uq")
       .on(t.ocorrencia_id, t.insumo_id)
@@ -289,3 +293,14 @@ export const insumos_ocorrencias = sqliteTable(
       .where(sql`${t.tipo} = 2`),
   ],
 );
+
+export const celulas_relations = relations(celulas, ({ many }) => ({
+  maquinas: many(maquinas),
+}));
+
+export const maquinas_relations = relations(maquinas, ({ one }) => ({
+  celula: one(celulas, {
+    fields: [maquinas.celula_id],
+    references: [celulas.id],
+  }),
+}));

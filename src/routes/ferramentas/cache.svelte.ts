@@ -6,9 +6,11 @@ export const ferramentas_cache = $state<{
   has_more: boolean;
   offset: number;
   debounce_query: string | null;
+  count: number;
 }>({
   items: [],
   has_more: true,
   offset: 0,
   debounce_query: null,
+  count: 0,
 });

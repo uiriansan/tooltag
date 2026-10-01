@@ -11,14 +11,14 @@
 
 <a
     href={url}
-    class="bg-brand w-full aspect-square md:w-50 p-6 rounded-base shadow-xs hover:bg-brand-strong transition-colors duration-200 flex flex-col justify-center items-center flex-1 gap-5"
+    class="bg-primary w-full aspect-square md:w-50 p-6 rounded-md shadow-xs hover:bg-primary/80 transition-colors duration-200 flex flex-col justify-center items-center flex-1 gap-5"
 >
     {#if Icon}
-        <Icon class="w-10 h-10 text-fg-brand-subtle" />
+        <Icon class="w-10 h-10 text-white/90" />
     {/if}
 
     <h5
-        class="mb-3 line-clamp-2 font-semibold tracking-tight text-fg-brand-subtle text-center"
+        class="mb-3 line-clamp-2 font-semibold tracking-tight text-white text-center"
     >
         {text}
     </h5>

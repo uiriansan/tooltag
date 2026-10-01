@@ -13,6 +13,10 @@ const sqlite = new Database(process.env.DB_PATH!);
 sqlite.pragma("foreign_keys = ON");
 const db = drizzle(sqlite);
 
+const normalize_search_string = (query: string) => {
+  return query.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+};
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -447,17 +451,22 @@ async function main() {
       }
 
       const ehRevisao = v > 1;
+      const nome = ehRevisao ? `${base.nome} (revisão ${v})` : base.nome;
+      const observacoes = ehRevisao
+        ? `Revisão ${v} do cadastro. ${loremFrase(4, 10)}`
+        : chance(0.4)
+          ? loremFrase(6, 16)
+          : null;
 
       insumosRows.push({
         cod_interno: codInterno,
         cod_fabricacao: base.codFabricacao,
         // a partir da v2, garante (de forma determinística) que algo mudou
-        nome: ehRevisao ? `${base.nome} (revisão ${v})` : base.nome,
-        observacoes: ehRevisao
-          ? `Revisão ${v} do cadastro. ${loremFrase(4, 10)}`
-          : chance(0.4)
-            ? loremFrase(6, 16)
-            : null,
+        nome,
+        observacoes,
+        busca_str: normalize_search_string(
+          `${codInterno} ${base.nome} ${observacoes}`,
+        ),
         foto_path: base.temFoto ? fotoPathPadrao() : null,
         material: ehRevisao && chance(0.4) ? pick(MATERIAIS) : base.material,
         categoria_id: base.categoriaId,
@@ -518,16 +527,21 @@ async function main() {
       }
 
       const ehRevisao = v > 1;
+      const nome = ehRevisao ? `${base.nome} (revisão ${v})` : base.nome;
+      const observacoes = ehRevisao
+        ? `Revisão ${v} do cadastro. ${loremFrase(4, 10)}`
+        : chance(0.4)
+          ? loremFrase(6, 16)
+          : null;
 
       ferramentasRows.push({
         cod_interno: codInterno,
         cod_fabricacao: base.codFabricacao,
-        nome: ehRevisao ? `${base.nome} (revisão ${v})` : base.nome,
-        observacoes: ehRevisao
-          ? `Revisão ${v} do cadastro. ${loremFrase(4, 10)}`
-          : chance(0.4)
-            ? loremFrase(6, 16)
-            : null,
+        nome,
+        observacoes,
+        busca_str: normalize_search_string(
+          `${codInterno} ${nome} ${observacoes}`,
+        ),
         foto_path: base.temFoto ? fotoPathPadrao() : null,
         material: ehRevisao && chance(0.4) ? pick(MATERIAIS) : base.material,
         tipo_id: base.tipoId,

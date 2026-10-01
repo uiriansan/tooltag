@@ -26,6 +26,12 @@ export const GET: RequestHandler = async ({ url }) => {
   const tipos_ids =
     tipos_url === null ? [] : tipos_url.split(",").map((id) => Number(id));
 
+  const maquinas_url = url.searchParams.get("maquinas");
+  const maquinas_ids =
+    maquinas_url === null
+      ? []
+      : maquinas_url.split(",").map((id) => Number(id));
+
   const enable_status_filters =
     url.searchParams.get("status") === "1" ? true : false;
   const incompleto = url.searchParams.get("incompleto") === "1" ? true : false;
@@ -44,6 +50,7 @@ export const GET: RequestHandler = async ({ url }) => {
     offset,
     limit,
     tipos_ids,
+    maquinas_ids,
     null,
     enable_status_filters,
     incompleto,
@@ -53,7 +60,7 @@ export const GET: RequestHandler = async ({ url }) => {
   );
 
   // TODO: REMOVE!
-  await delay(1000);
+  // await delay(1000);
 
   logger.info(url.toString());
 

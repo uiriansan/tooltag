@@ -1,6 +1,15 @@
 import { db } from "$lib/server/db";
 import { env } from "$env/dynamic/private";
-import { ferramentas, tipos_ferramentas } from "./db/schema";
+import {
+  ferramentas,
+  tipos_ferramentas,
+  ocorrencias,
+  insumos_ocorrencias,
+  insumos,
+  insumos_ferramentas,
+  maquinas,
+  ferramentas_maquinas,
+} from "./db/schema";
 import { SortFerramentas } from "$lib/types";
 import {
   eq,
@@ -8,6 +17,7 @@ import {
   and,
   like,
   isNull,
+  isNotNull,
   sql,
   count,
   asc,
@@ -15,12 +25,16 @@ import {
   inArray,
 } from "drizzle-orm";
 import { logger } from "./logger";
+import { normalize_search_string } from "./utils";
+
+export const get_ferramenta_by_cod_interno = async (cod_interno: string) => {};
 
 export const get_ferramentas_filter = async (
   sort: SortFerramentas = SortFerramentas.COD_AZ,
   offset: number = 0,
   limit: number = 50,
   tipos_ids: number[],
+  maquinas_ids: number[],
   adicionado_por: number | null,
   enable_status_filters: boolean,
   incompleto: boolean,
@@ -33,10 +47,8 @@ export const get_ferramentas_filter = async (
   if (query) {
     filter_conditions.push(
       or(
-        like(ferramentas.cod_interno, `%${query}%`),
-        like(ferramentas.nome, `%${query}%`),
-        like(ferramentas.observacoes, `%${query}%`),
-        eq(ferramentas.cod_fabricacao, query),
+        like(ferramentas.busca_str, `%${normalize_search_string(query)}%`),
+        eq(ferramentas.cod_fabricacao, `${query}`),
       ),
     );
   }
@@ -80,6 +92,22 @@ export const get_ferramentas_filter = async (
     .groupBy(ferramentas.cod_interno)
     .as("max_versao_ativa");
 
+  const ultima_ocorrencia_por_ferramenta = db
+    .select({
+      ferramenta_id: insumos_ocorrencias.ferramenta_id,
+      ultima_ocorrencia: sql<number>`max(${ocorrencias.data})`.as(
+        "ultima_ocorrencia",
+      ),
+    })
+    .from(insumos_ocorrencias)
+    .innerJoin(
+      ocorrencias,
+      eq(ocorrencias.id, insumos_ocorrencias.ocorrencia_id),
+    )
+    .where(isNotNull(insumos_ocorrencias.ferramenta_id))
+    .groupBy(insumos_ocorrencias.ferramenta_id)
+    .as("ultima_ocorrencia_ferramenta");
+
   function apply_filters<T extends { $dynamic: () => any }>(query: T) {
     let q = query.$dynamic();
 
@@ -90,6 +118,15 @@ export const get_ferramentas_filter = async (
           eq(ferramentas.cod_interno, max_versao_ativa_per_item.cod_interno),
           eq(ferramentas.versao, max_versao_ativa_per_item.max_versao),
         ),
+      );
+    }
+    if (
+      sort === SortFerramentas.OCORRENCIAS_NEW ||
+      sort === SortFerramentas.OCORRENCIAS_OLD
+    ) {
+      q = q.leftJoin(
+        ultima_ocorrencia_por_ferramenta,
+        eq(ferramentas.id, ultima_ocorrencia_por_ferramenta.ferramenta_id),
       );
     }
     if (where_clause) {
@@ -119,6 +156,12 @@ export const get_ferramentas_filter = async (
       break;
     case SortFerramentas.COD_ZA:
       sort_method = desc(ferramentas.cod_interno);
+      break;
+    case SortFerramentas.OCORRENCIAS_NEW:
+      sort_method = desc(ultima_ocorrencia_por_ferramenta.ultima_ocorrencia);
+      break;
+    case SortFerramentas.OCORRENCIAS_OLD:
+      sort_method = asc(ultima_ocorrencia_por_ferramenta.ultima_ocorrencia);
       break;
     default:
       sort_method = asc(ferramentas.cod_interno);
