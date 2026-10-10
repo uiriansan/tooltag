@@ -14,6 +14,8 @@
     import Logout from "@lucide/svelte/icons/log-out";
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu/";
     import * as Tooltip from "$lib/components/ui/tooltip";
+    import MenuIcon from "@lucide/svelte/icons/menu";
+    import XIcon from "@lucide/svelte/icons/x";
 
     let route = $derived<string | null>(page.route.id);
 
@@ -22,6 +24,12 @@
     };
 
     let { children } = $props();
+
+    let menu_opened = $state(false);
+
+    const toggle_menu = () => {
+        menu_opened = !menu_opened;
+    };
 </script>
 
 <svelte:head>
@@ -30,15 +38,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </svelte:head>
 
-<nav class="sticky top-0 w-full h-19 z-50 lg:p-2 bg-background">
+<nav class="sticky top-0 w-full h-19 z-50 lg:p-2 bg-background overflow-hidden">
     <div
-        class="h-full md:max-w-332 md:mx-auto flex justify-between bg-accent lg:border lg:rounded-lg px-1"
+        class="h-full md:max-w-332 md:mx-auto flex justify-between items-center bg-accent lg:rounded-lg px-3 lg:px-1"
     >
-        <div class="flex gap-5">
+        <Button
+            variant="outline"
+            size="lg"
+            class="self-center lg:hidden"
+            onclick={toggle_menu}
+        >
+            {#if menu_opened}
+                <XIcon />
+            {:else}
+                <MenuIcon />
+            {/if}
+
+            <span class="">Menu</span>
+        </Button>
+        <div class="hidden lg:flex gap-5">
             <a href="/">
                 <img src={tooltag} alt="Tooltag logo" class="w-15" />
             </a>
-            <ul class="h-full flex items-center p-1 gap-10">
+            <ul class="flex items-center p-1 gap-10">
+                <li class="p-0 m-0">
+                    <a
+                        class="text-muted-foreground"
+                        class:text-foreground!={route === "/"}
+                        class:font-bold={route === "/"}
+                        href={route === "/"
+                            ? "javascript:void(0)"
+                            : `/?${page.url.searchParams.toString()}`}>Início</a
+                    >
+                </li>
                 <li class="p-0 m-0">
                     <a
                         class="text-muted-foreground"
@@ -85,72 +117,10 @@
                 </li>
             </ul>
         </div>
+        <a href="/" class="lg:hidden">
+            <img src={tooltag} alt="Tooltag logo" class="w-15" />
+        </a>
         <div class="flex gap-2 items-center">
-            <Tooltip.Provider disabled={route === "/ocorrencias/criar"}>
-                <Tooltip.Root>
-                    <Tooltip.Trigger>
-                        {#snippet child({ props })}
-                            <Button
-                                {...props}
-                                variant={route === "/ocorrencias/criar"
-                                    ? "ghost"
-                                    : "default"}
-                                size="lg"
-                                class={`cursor-pointer text-white ${route === "/ocorrencias/criar" ? "hover:bg-transparent! text-muted-foreground! cursor-not-allowed!" : ""}`}
-                                href={route === "/ocorrencias/criar"
-                                    ? "javascript:void(0)"
-                                    : "/ocorrencias/criar"}
-                            >
-                                <Plus />
-                            </Button>
-                        {/snippet}
-                    </Tooltip.Trigger>
-                    <Tooltip.Content>
-                        <p>Criar ocorrencia</p>
-                    </Tooltip.Content>
-                </Tooltip.Root>
-            </Tooltip.Provider>
-
-            <Tooltip.Provider>
-                <Tooltip.Root>
-                    <Tooltip.Trigger>
-                        {#snippet child({ props })}
-                            <Button
-                                {...props}
-                                variant="ghost"
-                                size="icon-lg"
-                                class="cursor-pointer"
-                            >
-                                <Search />
-                            </Button>
-                        {/snippet}
-                    </Tooltip.Trigger>
-                    <Tooltip.Content>
-                        <p>Buscar</p>
-                    </Tooltip.Content>
-                </Tooltip.Root>
-            </Tooltip.Provider>
-
-            <Tooltip.Provider>
-                <Tooltip.Root>
-                    <Tooltip.Trigger>
-                        {#snippet child({ props })}
-                            <Button
-                                {...props}
-                                variant="ghost"
-                                size="icon-lg"
-                                class="cursor-pointer"
-                            >
-                                <Scan />
-                            </Button>
-                        {/snippet}
-                    </Tooltip.Trigger>
-                    <Tooltip.Content>
-                        <p>Ler QrCode</p>
-                    </Tooltip.Content>
-                </Tooltip.Root>
-            </Tooltip.Provider>
-
             <DropdownMenu.Root>
                 <DropdownMenu.Trigger>
                     {#snippet child({ props }: any)}
@@ -159,7 +129,7 @@
                                 {...props}
                                 variant="ghost"
                                 size="lg"
-                                class="m-0 underline-offset-5 cursor-pointer text-md font-normal"
+                                class="m-0 underline-offset-5 cursor-pointer text-md font-normal lg:flex hidden"
                             >
                                 <Shield /> Willian <Chevron />
                             </Button>
@@ -179,9 +149,81 @@
                     </DropdownMenu.Group>
                 </DropdownMenu.Content>
             </DropdownMenu.Root>
+
+            <Tooltip.Provider>
+                <Tooltip.Root>
+                    <Tooltip.Trigger>
+                        {#snippet child({ props })}
+                            <Button
+                                {...props}
+                                variant="ghost"
+                                size="icon-lg"
+                                class="cursor-pointer lg:flex hidden"
+                            >
+                                <Search />
+                            </Button>
+                        {/snippet}
+                    </Tooltip.Trigger>
+                    <Tooltip.Content>
+                        <p>Buscar</p>
+                    </Tooltip.Content>
+                </Tooltip.Root>
+            </Tooltip.Provider>
+
+            <Tooltip.Provider>
+                <Tooltip.Root>
+                    <Tooltip.Trigger>
+                        {#snippet child({ props })}
+                            <Button
+                                {...props}
+                                variant="ghost"
+                                size="icon-lg"
+                                class="cursor-pointer lg:flex hidden"
+                            >
+                                <Scan />
+                            </Button>
+                        {/snippet}
+                    </Tooltip.Trigger>
+                    <Tooltip.Content>
+                        <p>Ler QrCode</p>
+                    </Tooltip.Content>
+                </Tooltip.Root>
+            </Tooltip.Provider>
+
+            <Tooltip.Provider disabled={route === "/ocorrencias/criar"}>
+                <Tooltip.Root>
+                    <Tooltip.Trigger>
+                        {#snippet child({ props })}
+                            <Button
+                                {...props}
+                                variant={route === "/ocorrencias/criar"
+                                    ? "ghost"
+                                    : "default"}
+                                size="lg"
+                                class={`cursor-pointer text-white mr-2 ${route === "/ocorrencias/criar" ? "hover:bg-transparent! text-muted-foreground! cursor-not-allowed!" : ""}`}
+                                href={route === "/ocorrencias/criar"
+                                    ? "javascript:void(0)"
+                                    : "/ocorrencias/criar"}
+                            >
+                                <Plus />
+                                <span class="hidden md:block">Criar</span>
+                            </Button>
+                        {/snippet}
+                    </Tooltip.Trigger>
+                    <Tooltip.Content>
+                        <p>Criar ocorrencia</p>
+                    </Tooltip.Content>
+                </Tooltip.Root>
+            </Tooltip.Provider>
         </div>
     </div>
 </nav>
+<div
+    class="h-screen w-full bg-accent px-3 overflow-hidden"
+    class:hidden={!menu_opened}
+>
+    MENU
+</div>
 
 <div class="px-0 lg:px-2">
     {@render children()}

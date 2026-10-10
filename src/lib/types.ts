@@ -3,8 +3,6 @@ export interface GenericData {
   nome: string;
 }
 
-export interface InsumoCardData {}
-
 export interface Insumo {
   id: number;
   cod_frabricacao: string | null;
@@ -32,15 +30,27 @@ export interface Maquina {
   celula: GenericData;
 }
 
+export interface InsumoCardData {
+  cod_interno: string;
+  nome: string;
+  observacoes: string | null;
+  foto_path: string;
+  categoria: string | null;
+  completo: boolean;
+  obsoleto: boolean;
+  versao: number;
+  maquinas: Maquina[];
+}
+
 export interface FerramentaCardData {
   cod_interno: string;
   nome: string;
   observacoes: string | null;
   foto_path: string;
-  tipo_id: number | null;
+  tipo: string | null;
   completo: boolean;
   obsoleto: boolean;
-  versao_last: number;
+  versao: number;
   maquinas: Maquina[];
   insumos: InsumoCardData[];
 }

@@ -2,7 +2,7 @@
 
 @import "tw-animate-css";
 @import "shadcn-svelte/tailwind.css";
-@import "@fontsource-variable/inter";
+@import "@fontsource-variable/roboto";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -17,7 +17,7 @@
 
     html {
         @apply font-sans;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-family: 'Roboto Variable', Roboto, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     }
 
     [type="checkbox"]:checked {
@@ -26,7 +26,8 @@
 }
 
 :root {
-    --radius: 0.625rem;
+    /* Card 12px (lg), thumbnails 10px (md), chips/badges 8px (sm) */
+    --radius: 0.75rem;
 
     /* Base surfaces */
     --background: oklch(0.99 0.002 255);
@@ -34,6 +35,8 @@
 
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.14 0.025 255);
+    /* Card hover / selected row */
+    --card-hover: oklch(0.97 0.012 255);
 
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.14 0.025 255);
@@ -42,20 +45,24 @@
     --primary: oklch(0.44 0.144 255);
     --primary-foreground: oklch(0.98 0.01 255);
 
-    /* Secondary — soft tinted neutral */
+    /* Tool code and other inline highlights (e.g. "H012") */
+    --link: oklch(0.50 0.15 255);
+
+    /* Secondary — soft tinted neutral (machine chips) */
     --secondary: oklch(0.95 0.02 255);
-    --secondary-foreground: oklch(0.22 0.05 255);
+    --secondary-foreground: oklch(0.30 0.06 255);
 
     --muted: oklch(0.96 0.01 255);
     --muted-foreground: oklch(0.38 0.035 255);
 
+    /* Accent — quantity badge, hover states */
     --accent: oklch(0.93 0.035 255);
-    --accent-foreground: oklch(0.20 0.08 255);
+    --accent-foreground: oklch(0.40 0.14 255);
 
     --destructive: oklch(0.52 0.24 27);
     --destructive-foreground: oklch(0.98 0.01 27);
 
-    --border: oklch(0.85 0.02 255);
+    --border: oklch(0.88 0.02 255);
     --input: oklch(0.85 0.02 255);
     --ring: oklch(0.44 0.144 255);
 
@@ -66,14 +73,14 @@
     --chart-4: oklch(0.68 0.17 70);
     --chart-5: oklch(0.58 0.18 320);
 
-    /* Sidebar */
+    /* Sidebar (filter panel) */
     --sidebar: oklch(0.97 0.008 255);
     --sidebar-foreground: oklch(0.14 0.025 255);
     --sidebar-primary: oklch(0.44 0.144 255);
     --sidebar-primary-foreground: oklch(0.98 0.01 255);
     --sidebar-accent: oklch(0.93 0.035 255);
     --sidebar-accent-foreground: oklch(0.20 0.08 255);
-    --sidebar-border: oklch(0.85 0.02 255);
+    --sidebar-border: oklch(0.88 0.02 255);
     --sidebar-ring: oklch(0.44 0.144 255);
 
     /* Shadows — subtle brand-tinted */
@@ -89,49 +96,60 @@
 }
 
 .dark {
-    --background: oklch(0.16 0.02 255);
-    --foreground: oklch(0.96 0.01 255);
+    /* Page ground: #060b14 */
+    --background: oklch(0.149 0.022 260);
+    --foreground: oklch(0.968 0.007 248);
 
-    --card: oklch(0.21 0.02 255);
-    --card-foreground: oklch(0.96 0.01 255);
+    /* Tool card: #131c2b, hover #1b2638 */
+    --card: oklch(0.226 0.032 260);
+    --card-foreground: oklch(0.968 0.007 248);
+    --card-hover: oklch(0.267 0.037 260);
 
-    --popover: oklch(0.21 0.02 255);
-    --popover-foreground: oklch(0.96 0.01 255);
+    --popover: oklch(0.226 0.032 260);
+    --popover-foreground: oklch(0.968 0.007 248);
 
-    /* Brighter/lighter primary for contrast on dark backgrounds */
-    --primary: oklch(0.65 0.16 255);
-    --primary-foreground: oklch(0.15 0.03 255);
+    /* Action blue (#3b8cf0, "Criar" button, active toggles) */
+    --primary: oklch(0.640 0.169 256);
+    --primary-foreground: oklch(0.14 0.03 260);
 
-    --secondary: oklch(0.27 0.03 255);
-    --secondary-foreground: oklch(0.90 0.02 255);
+    /* Tool code / links (#4c9bf5) */
+    --link: oklch(0.681 0.155 254);
 
-    --muted: oklch(0.25 0.02 255);
-    --muted-foreground: oklch(0.66 0.03 255);
+    /* Machine chips: bg #1c2a44, text #aec2e3 */
+    --secondary: oklch(0.286 0.052 262);
+    --secondary-foreground: oklch(0.810 0.052 260);
 
-    --accent: oklch(0.30 0.05 255);
-    --accent-foreground: oklch(0.90 0.03 255);
+    /* Muted text #8b97ab; descriptions use a step lighter, oklch(0.763 0.030 260) */
+    --muted: oklch(0.250 0.030 260);
+    --muted-foreground: oklch(0.674 0.033 261);
+
+    /* Quantity badge: blue at ~16% over the card, text #7db4f8 */
+    --accent: oklch(0.310 0.065 256);
+    --accent-foreground: oklch(0.759 0.114 254);
 
     --destructive: oklch(0.55 0.22 27);
     --destructive-foreground: oklch(0.98 0.01 27);
 
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.65 0.16 255);
+    /* Card/divider border #202c42, strong border / inputs #2a3a57 */
+    --border: oklch(0.293 0.044 262);
+    --input: oklch(0.349 0.055 262);
+    --ring: oklch(0.640 0.169 256);
 
-    --chart-1: oklch(0.65 0.16 255);
+    --chart-1: oklch(0.640 0.169 256);
     --chart-2: oklch(0.70 0.14 200);
     --chart-3: oklch(0.68 0.15 150);
     --chart-4: oklch(0.75 0.17 70);
     --chart-5: oklch(0.68 0.18 320);
 
-    --sidebar: oklch(0.19 0.02 255);
-    --sidebar-foreground: oklch(0.96 0.01 255);
-    --sidebar-primary: oklch(0.65 0.16 255);
-    --sidebar-primary-foreground: oklch(0.15 0.03 255);
-    --sidebar-accent: oklch(0.30 0.05 255);
-    --sidebar-accent-foreground: oklch(0.90 0.03 255);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.65 0.16 255);
+    /* Filter panel, same family as the card, one step lighter than the page */
+    --sidebar: oklch(0.240 0.035 260);
+    --sidebar-foreground: oklch(0.968 0.007 248);
+    --sidebar-primary: oklch(0.640 0.169 256);
+    --sidebar-primary-foreground: oklch(0.14 0.03 260);
+    --sidebar-accent: oklch(0.310 0.065 256);
+    --sidebar-accent-foreground: oklch(0.759 0.114 254);
+    --sidebar-border: oklch(0.293 0.044 262);
+    --sidebar-ring: oklch(0.640 0.169 256);
 
     /* Dark-mode shadows are plain black, brand-tint would look muddy */
     --shadow-color: oklch(0 0 0);
@@ -151,12 +169,15 @@
 
     --color-card: var(--card);
     --color-card-foreground: var(--card-foreground);
+    --color-card-hover: var(--card-hover);
 
     --color-popover: var(--popover);
     --color-popover-foreground: var(--popover-foreground);
 
     --color-primary: var(--primary);
     --color-primary-foreground: var(--primary-foreground);
+
+    --color-link: var(--link);
 
     --color-secondary: var(--secondary);
     --color-secondary-foreground: var(--secondary-foreground);

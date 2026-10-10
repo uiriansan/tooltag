@@ -8,35 +8,38 @@
     import * as InputGroup from "$lib/components/ui/input-group";
     import SearchIcon from "@lucide/svelte/icons/search";
     import XIcon from "@lucide/svelte/icons/x";
-    import CheckIcon from "@lucide/svelte/icons/check";
-    import UncheckIcon from "@lucide/svelte/icons/square-arrow-down";
     import SortIcon from "@lucide/svelte/icons/list-sort-ascending";
     import EmptyIcon from "@lucide/svelte/icons/sticky-note-x";
-    import * as Select from "$lib/components/ui/select";
     import type { PageProps, Snapshot } from "./$types";
     import Button from "$lib/components/ui/button/button.svelte";
+    import * as Select from "$lib/components/ui/select";
     import Label from "$lib/components/ui/label/label.svelte";
     import { goto } from "$app/navigation";
     import ListPage from "$lib/components/list_page.svelte";
     import Switch from "$lib/components/ui/switch/switch.svelte";
     import { ferramentas_cache } from "./cache.svelte";
     import { compare_arrays_equals } from "$lib/utils";
+    import MaquinasSelect from "$lib/components/maquinas_select.svelte";
+    import insumo_icon from "$lib/assets/insumo.png";
 
     let { data }: PageProps = $props();
 
     const PAGE_LIMIT = 50;
     const SEARCH_DEBOUNCE_MS = 400;
 
-    let search_query = $state<string>(page.url.searchParams.get("q") ?? "");
-    let sort_method = $state(
+    let search_query = $derived<string>(page.url.searchParams.get("q") ?? "");
+    let sort_method = $derived(
         page.url.searchParams.get("sort") ?? SortFerramentas.COD_AZ,
     );
-    let selected_tipos_ferramentas = $state<string[]>(
-        (page.url.searchParams.get("tipos") ?? "")
-            .split(",")
-            .filter((id) => id.length > 0)
-            .map((id) => id.trim()),
-    );
+    let selected_tipos_ferramentas = $derived<string[]>([
+        // Remove duplicatas.
+        ...new Set(
+            (page.url.searchParams.get("tipos") ?? "")
+                .split(",")
+                .filter((id) => id.length > 0)
+                .map((id) => id.trim()),
+        ),
+    ]);
     let selected_tipos_ferramentas_at_open: string[] = [];
 
     let is_loading_more = $state(false);
@@ -49,7 +52,7 @@
     let ready = $state(false);
 
     let tipos_ferramentas = $derived([
-        { id: 0, nome: "Geral" },
+        { id: 0, nome: "Não especificado" },
         ...data.tipos_ferramentas,
     ]);
 
@@ -70,34 +73,20 @@
         { id: 0, nome: null, maquinas: [{ id: 0, nome: "Não especificado" }] },
         ...data.maquinas,
     ]);
-    let selected_maquinas = $state<string[]>(
-        (page.url.searchParams.get("maquinas") ?? "")
-            .split(",")
-            .filter((id) => id.length > 0)
-            .map((id) => id.trim()),
-    );
+    let selected_maquinas = $derived<string[]>([
+        ...new Set(
+            (page.url.searchParams.get("maquinas") ?? "")
+                .split(",")
+                .filter((id) => id.length > 0)
+                .map((id) => id.trim()),
+        ),
+    ]);
     let selected_maquinas_at_open: string[] = [];
-    const selected_maquinas_label = $derived.by(() => {
-        if (
-            selected_maquinas.length === 0 ||
-            selected_maquinas.length ===
-                celulas.map((c) => c.maquinas).flat().length
-        ) {
-            return "Todas as máquinas";
-        }
-        return celulas
-            .map((c) => c.maquinas)
-            .flat()
-            .filter((m) => selected_maquinas.includes(String(m.id)))
-            .map((m) => m.nome)
-            .join(", ");
-    });
-    let highlighted_celula = $state(-1);
 
-    let status_obsoleto = $state<boolean>(
+    let status_obsoleto = $derived<boolean>(
         Boolean(page.url.searchParams.get("obsoleto")),
     );
-    let status_incompleto = $state<boolean>(
+    let status_incompleto = $derived<boolean>(
         Boolean(page.url.searchParams.get("incompleto")),
     );
     let enable_status_filters = $derived.by<boolean>(() => {
@@ -170,6 +159,8 @@
             params.set("versoes_group", "0");
         }
 
+        ferramentas_cache.url_params = params.toString();
+
         goto(`?${params.toString()}`, {
             replaceState: true,
             noScroll: true,
@@ -187,6 +178,7 @@
         ferramentas_cache.has_more = true;
         ferramentas_cache.items = [];
         ferramentas_cache.count = 0;
+        ferramentas_cache.url_params = null;
 
         sync_url_params();
         load_more();
@@ -318,7 +310,6 @@
     $effect(() => {
         if (restored_scroll === null) return;
 
-        // FIXME: !
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 window.scrollTo(0, restored_scroll!);
@@ -354,19 +345,32 @@
             onscroll={calculate_load_bounds}
         >
             {#snippet children(ferramenta, index)}
-                <InsumoCard
-                    cod={ferramenta.cod_interno}
-                    nome={ferramenta.nome}
-                    foto={ferramenta.foto_path}
-                    obs={ferramenta.observacoes}
-                    ferramenta={true}
-                    class={`${clicked_item_index !== null && clicked_item_index === index ? "border-2! border-primary! bg-accent! rounded-md" : "rounded-md"}`}
-                    on_click={() => {
-                        clicked_item_index = index;
-                    }}
-                >
-                    <span></span>
-                </InsumoCard>
+                <div class="pb-4">
+                    <InsumoCard
+                        cod={ferramenta.cod_interno}
+                        nome={ferramenta.nome}
+                        foto={ferramenta.foto_path}
+                        obs={ferramenta.observacoes}
+                        categoria={ferramenta.tipo}
+                        maquinas={ferramenta.maquinas}
+                        versao={ferramenta.versao}
+                        ferramenta={true}
+                        class={`${clicked_item_index !== null && clicked_item_index === index ? "border-2! border-primary! bg-accent! rounded-md" : "rounded-md"}`}
+                        on_click={() => {
+                            clicked_item_index = index;
+                        }}
+                    >
+                        {#each ferramenta.insumos as insumo}
+                            <img
+                                src={insumo.foto_path === null
+                                    ? insumo_icon
+                                    : insumo.foto_path}
+                                alt="Insumo"
+                                class="w-10 h-10 aspect-square rounded-full"
+                            />
+                        {/each}
+                    </InsumoCard>
+                </div>
             {/snippet}
         </WindowVirtualizer>
 
@@ -492,6 +496,11 @@
                 </Select.Content>
             </Select.Root>
         </div>
+        <MaquinasSelect
+            bind:selected_maquinas
+            {celulas}
+            apply_filters_cb={apply_filters}
+        />
         <div class="flex flex-col gap-1.5">
             <Label for="tipo_ferramenta" class="pl-1.5 text-foreground text-md"
                 >Tipos:</Label
@@ -560,161 +569,6 @@
                             >
                         {/each}
                     </Select.Group>
-                </Select.Content>
-            </Select.Root>
-        </div>
-        <div class="flex flex-col gap-1.5">
-            <Label for="tipo_ferramenta" class="pl-1.5 text-foreground text-md"
-                >Máquinas:</Label
-            >
-            <Select.Root
-                bind:value={selected_maquinas}
-                type="multiple"
-                name="tipo_ferramenta"
-                disabled={celulas.length === 0}
-                allowDeselect={true}
-                onOpenChange={(opened) => {
-                    if (opened && selected_maquinas_at_open.length === 0) {
-                        selected_maquinas_at_open = [...selected_maquinas];
-                    } else {
-                        if (
-                            !compare_arrays_equals(
-                                selected_maquinas_at_open,
-                                selected_maquinas,
-                            )
-                        ) {
-                            apply_filters();
-                        }
-                        selected_maquinas_at_open = [];
-                    }
-                }}
-            >
-                <Select.Trigger
-                    class="w-full field-sizing-fixed cursor-pointer h-10!"
-                >
-                    <span class="overflow-hidden text-ellipsis"
-                        >{selected_maquinas_label}</span
-                    >
-                </Select.Trigger>
-                <Select.Content class="max-g-[300px] w-full">
-                    <Select.Group>
-                        <Select.GroupHeading>
-                            {#snippet child()}
-                                <div
-                                    class="flex justify-between px-1.5 items-center h-6"
-                                >
-                                    <span class="text-xs text-muted-foreground"
-                                        >Selecione uma ou mais:</span
-                                    >
-                                    {#if selected_maquinas.length > 0}
-                                        <Button
-                                            variant="outline"
-                                            class="cursor-pointer"
-                                            size="xs"
-                                            onclick={() =>
-                                                (selected_maquinas = [])}
-                                        >
-                                            <XIcon /> Limpar
-                                        </Button>
-                                    {/if}
-                                </div>
-                            {/snippet}
-                        </Select.GroupHeading>
-                    </Select.Group>
-                    {#each celulas as celula (celula.id)}
-                        <Select.Group>
-                            {#if celula.id !== 0}
-                                <Select.GroupHeading>
-                                    {#snippet child()}
-                                        <div
-                                            class={`flex justify-between px-1.5 items-center h-6 ${highlighted_celula === celula.id ? "bg-accent rounded-none" : ""}`}
-                                            onmouseenter={() => {
-                                                highlighted_celula = celula.id;
-                                            }}
-                                            onmouseleave={() => {
-                                                highlighted_celula = -1;
-                                            }}
-                                        >
-                                            <label
-                                                for={`check_maquinas_${celula.id}`}
-                                                class="text-xs text-muted-foreground flex-1 cursor-pointer"
-                                                >{celula.nome}</label
-                                            >
-                                            <Button
-                                                id={`check_maquinas_${celula.id}`}
-                                                variant="ghost"
-                                                class="cursor-pointer text-muted-foreground -mr-1"
-                                                size="icon-sm"
-                                                onclick={() => {
-                                                    if (
-                                                        celula.maquinas
-                                                            .map((m) =>
-                                                                String(m.id),
-                                                            )
-                                                            .flat()
-                                                            .some((r) =>
-                                                                selected_maquinas.includes(
-                                                                    r,
-                                                                ),
-                                                            )
-                                                    ) {
-                                                        for (const m of celula.maquinas) {
-                                                            const idx =
-                                                                selected_maquinas.indexOf(
-                                                                    String(
-                                                                        m.id,
-                                                                    ),
-                                                                );
-                                                            if (idx !== -1) {
-                                                                selected_maquinas.splice(
-                                                                    idx,
-                                                                    1,
-                                                                );
-                                                            }
-                                                        }
-                                                    } else {
-                                                        for (const m of celula.maquinas) {
-                                                            if (
-                                                                !selected_maquinas.includes(
-                                                                    String(
-                                                                        m.id,
-                                                                    ),
-                                                                )
-                                                            ) {
-                                                                selected_maquinas.push(
-                                                                    String(
-                                                                        m.id,
-                                                                    ),
-                                                                );
-                                                            }
-                                                        }
-                                                    }
-                                                }}
-                                            >
-                                                {#if celula.maquinas
-                                                    .map((m) => String(m.id))
-                                                    .flat()
-                                                    .some( (r) => selected_maquinas.includes(r), )}
-                                                    <CheckIcon />
-                                                {:else}
-                                                    <UncheckIcon />
-                                                {/if}
-                                            </Button>
-                                        </div>
-                                    {/snippet}
-                                </Select.GroupHeading>
-                            {/if}
-                            {#each celula.maquinas as maquina (maquina.id)}
-                                <Select.Item
-                                    value={String(maquina.id)}
-                                    label={maquina.nome}
-                                    class={`cursor-pointer hover:bg-accent ${highlighted_celula === celula.id ? "bg-accent rounded-none" : highlighted_celula !== -1 ? "bg-transparent!" : ""}`}
-                                    ><a href="google.com">{maquina.nome}</a
-                                    ></Select.Item
-                                >
-                            {/each}
-                        </Select.Group>
-                    {/each}
                 </Select.Content>
             </Select.Root>
         </div>

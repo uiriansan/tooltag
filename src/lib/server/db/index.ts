@@ -4,6 +4,7 @@ import { env } from "$env/dynamic/private";
 import path from "path";
 import fs from "fs/promises";
 import * as schema from "./schema";
+import * as relations from "./relations";
 import { logger } from "$lib/server/logger";
 
 const global_db = globalThis as unknown as {
@@ -23,7 +24,7 @@ sqlite.pragma("foreign_keys = ON");
 sqlite.pragma("journal_mode = WAL");
 
 // Use `import { db } from "$lib/server/db` para importar o client como "singleton".
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(sqlite, { schema: { ...schema, ...relations } });
 
 /* -------------------------------------------------- */
 

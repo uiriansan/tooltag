@@ -4,7 +4,7 @@ import {
   insumos_ferramentas,
   insumos_maquinas,
 } from "$lib/server/db/schema";
-import { eq, sql, count } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { env } from "$env/dynamic/private";
 import { base } from "$app/paths";
 import { logger } from "./logger";
@@ -13,7 +13,7 @@ export const get_insumos = async () => {
   const insumos_data = await db
     .select({
       nome: insumos.nome,
-      foto_path: sql`IFNULL(${insumos.foto_path}, ${env.DATA_PATH} || '/uploads/insumo.png')`,
+      foto_path: insumos.foto_path,
       cod_interno: insumos.cod_interno,
       observacoes: insumos.observacoes,
     })
@@ -43,7 +43,7 @@ export const get_insumo_by_cod_interno = async (cod_interno: string) => {
   const insumos_data = await db
     .select({
       nome: insumos.nome,
-      foto_path: sql`IFNULL(${insumos.foto_path}, ${env.DATA_PATH} || '/uploads/insumo.png')`,
+      foto_path: insumos.foto_path,
       cod_interno: insumos.cod_interno,
       observacoes: insumos.observacoes,
     })

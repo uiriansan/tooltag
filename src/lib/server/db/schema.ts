@@ -293,14 +293,3 @@ export const insumos_ocorrencias = sqliteTable(
       .where(sql`${t.tipo} = 2`),
   ],
 );
-
-export const celulas_relations = relations(celulas, ({ many }) => ({
-  maquinas: many(maquinas),
-}));
-
-export const maquinas_relations = relations(maquinas, ({ one }) => ({
-  celula: one(celulas, {
-    fields: [maquinas.celula_id],
-    references: [celulas.id],
-  }),
-}));
